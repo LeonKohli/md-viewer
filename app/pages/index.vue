@@ -64,7 +64,7 @@
             v-model="markdownInput"
             placeholder="Start typing your markdown here..."
             :class="[
-              'h-full w-full resize-none border-0 bg-transparent dark:bg-transparent p-4 focus-visible:ring-0 font-mono text-sm leading-relaxed',
+              'h-full w-full resize-none border-0 bg-transparent dark:bg-transparent p-4 focus-visible:ring-0 font-mono text-sm leading-relaxed editor-scrollbar',
               wordWrap ? '' : 'whitespace-nowrap overflow-x-auto'
             ]"
             spellcheck="false"
@@ -132,7 +132,7 @@
         </div>
 
         <!-- Preview Content -->
-        <div ref="previewContainerRef" class="flex-1 overflow-auto bg-background">
+        <div ref="previewContainerRef" class="flex-1 overflow-auto bg-background preview-scrollbar">
           <div 
             v-if="renderedHtml"
             class="p-6 prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-m-20 prose-headings:tracking-tight prose-h1:text-2xl lg:prose-h1:text-4xl prose-h1:font-extrabold prose-h2:text-xl lg:prose-h2:text-3xl prose-h2:font-semibold prose-h3:text-lg lg:prose-h3:text-2xl prose-h3:font-semibold prose-h4:text-base lg:prose-h4:text-xl prose-h4:font-semibold prose-p:leading-7 prose-blockquote:border-l-2 prose-blockquote:pl-6 prose-blockquote:italic prose-code:relative prose-code:rounded prose-code:font-mono prose-code:text-sm prose-table:text-sm dark:prose-headings:text-foreground dark:prose-p:text-muted-foreground dark:prose-strong:text-foreground dark:prose-a:text-primary dark:prose-blockquote:text-muted-foreground dark:prose-blockquote:border-muted dark:prose-th:text-foreground dark:prose-td:text-muted-foreground"
