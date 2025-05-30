@@ -8,11 +8,7 @@
 // Global app configuration
 useHead({
   titleTemplate: (titleChunk) => {
-    return titleChunk ? `${titleChunk} - Nuxt Shadcn Boilerplate` : 'Nuxt Shadcn Boilerplate';
+    return titleChunk ? `${titleChunk} - Markdown Preview` : 'Markdown Preview';
   }
 })
 </script>
-
-<style>
-
-</style>

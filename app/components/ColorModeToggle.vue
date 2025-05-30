@@ -4,7 +4,7 @@
     size="icon"
     :aria-label="label"
     @click="toggle"
-    class="transition-all duration-200 hover:scale-105"
+    class="transition-all duration-150 hover:scale-105"
   >
     <Icon :name="icon" class="w-5 h-5 transition-all duration-300 ease-in-out" />
   </Button>

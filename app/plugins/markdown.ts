@@ -73,7 +73,7 @@ function addCopyButtons(html: string): string {
     return `<div class="code-block-wrapper relative group">
       <pre><code${attrs} id="${id}">${code}</code></pre>
       <button 
-        class="code-copy-btn absolute top-2 right-2 px-2 py-1 text-xs rounded bg-muted/80 hover:bg-muted text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1"
+        class="code-copy-btn absolute top-2 right-2 px-2 py-1 text-xs rounded bg-muted/80 hover:bg-muted text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-1"
         onclick="
           const codeEl = document.getElementById('${id}');
           const code = codeEl.textContent || codeEl.innerText;
