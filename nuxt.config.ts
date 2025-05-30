@@ -25,7 +25,10 @@ export default defineNuxtConfig({
   seo: {
     redirectToCanonicalSiteUrl: true,
   },
-  css: ['~/assets/css/main.css'],
+  css: [
+    '~/assets/css/main.css',
+    'highlight.js/styles/github.css'
+  ],
   shadcn: {
     prefix: '',
     componentDir: './app/components/ui'
@@ -37,5 +40,8 @@ export default defineNuxtConfig({
     plugins: [
       tailwindcss(),
     ],
+    optimizeDeps: {
+      include: ['highlight.js/lib/core'] // Avoids Nitro cold-start cost
+    }
   },
 })

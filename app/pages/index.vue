@@ -1,134 +1,179 @@
 <template>
-  <!-- 
-    The main layout (default.vue) already provides the global header/navbar and footer.
-    We only provide the main content here to avoid duplication and ensure a single source of truth.
-  -->
-  <div class="container mx-auto px-4 py-12">
-    <!-- Hero Section -->
-    <section class="text-center mb-16">
-      <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
-        Modern Nuxt 3 Boilerplate
-      </h1>
-      <p class="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-        A production-ready starter template with shadcn-vue, Tailwind CSS, VueUse, color mode, and SEO optimization.
-      </p>
-      <div class="flex flex-wrap justify-center gap-4">
-        <!-- Use Button, not UiButton, for consistency with the design system -->
-        <Button size="lg">
-          <Icon name="lucide:rocket" class="mr-2 h-4 w-4" />
-          Get Started
-        </Button>
-        <Button variant="outline" size="lg" as="a" href="https://github.com/leonkohli/nuxt-boilerplate" target="_blank" rel="noopener" aria-label="GitHub Repository">
-          <Icon name="lucide:github" class="mr-2 h-4 w-4" />
-          View on GitHub
-        </Button>
-      </div>
-    </section>
-
-    <!-- Features Grid -->
-    <section class="mb-16">
-      <h2 class="text-3xl font-bold text-center mb-12">Key Features</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card class="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-          <div class="flex items-center mb-4">
-            <Icon name="lucide:palette" class="h-8 w-8 text-primary mr-3" />
-            <h3 class="text-lg font-semibold">shadcn-vue</h3>
+  <div :class="[
+    'h-full flex flex-col',
+    isFullscreen ? 'fixed inset-0 z-50 bg-background' : ''
+  ]">
+    <!-- Main Content -->
+    <div class="flex flex-1 overflow-hidden relative">
+      <!-- Editor Panel -->
+      <div 
+        class="border-r flex flex-col"
+        :style="{ width: `${editorWidth}%` }"
+        v-show="editorWidth > 5"
+      >
+        <!-- Editor Header -->
+        <div class="px-4 py-2 border-b bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <Icon name="lucide:file-text" class="w-4 h-4" />
+            Editor
           </div>
-          <p class="text-muted-foreground leading-relaxed">
-            Beautiful, accessible components built with Reka UI and styled with Tailwind CSS.
-          </p>
-        </Card>
-
-        <Card class="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-          <div class="flex items-center mb-4">
-            <Icon name="lucide:wind" class="h-8 w-8 text-primary mr-3" />
-            <h3 class="text-lg font-semibold">Tailwind CSS</h3>
+          <div class="flex items-center gap-2 text-xs">
+            <Button 
+              variant="ghost"
+              size="sm" 
+              @click="toggleWordWrap"
+              :class="{ 'bg-accent text-accent-foreground': wordWrap }"
+              class="px-2 py-1 h-6 text-xs"
+            >
+              Wrap
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              class="lg:hidden h-6 w-6 p-0"
+              @click="togglePreview"
+            >
+              <Icon :name="showPreview ? 'lucide:edit-3' : 'lucide:eye'" class="h-3 w-3" />
+            </Button>
           </div>
-          <p class="text-muted-foreground leading-relaxed">
-            Utility-first CSS framework for rapid UI development with modern design patterns.
-          </p>
-        </Card>
-
-        <Card class="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-          <div class="flex items-center mb-4">
-            <Icon name="lucide:zap" class="h-8 w-8 text-primary mr-3" />
-            <h3 class="text-lg font-semibold">VueUse</h3>
-          </div>
-          <p class="text-muted-foreground leading-relaxed">
-            Collection of essential Vue composition utilities for enhanced development experience.
-          </p>
-        </Card>
-
-        <Card class="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-          <div class="flex items-center mb-4">
-            <Icon name="lucide:moon" class="h-8 w-8 text-primary mr-3" />
-            <h3 class="text-lg font-semibold">Color Mode</h3>
-          </div>
-          <p class="text-muted-foreground leading-relaxed">
-            Built-in dark/light mode support with smooth transitions and system preference detection.
-          </p>
-        </Card>
-
-        <Card class="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-          <div class="flex items-center mb-4">
-            <Icon name="lucide:search" class="h-8 w-8 text-primary mr-3" />
-            <h3 class="text-lg font-semibold">SEO Optimized</h3>
-          </div>
-          <p class="text-muted-foreground leading-relaxed">
-            Pre-configured SEO settings with meta tags, Open Graph, and structured data support.
-          </p>
-        </Card>
-
-        <Card class="p-6 transition-all duration-200 hover:shadow-lg hover:-translate-y-1">
-          <div class="flex items-center mb-4">
-            <Icon name="lucide:shield-check" class="h-8 w-8 text-primary mr-3" />
-            <h3 class="text-lg font-semibold">Type Safe</h3>
-          </div>
-          <p class="text-muted-foreground leading-relaxed">
-            Full TypeScript support with auto-generated types and excellent developer experience.
-          </p>
-        </Card>
-      </div>
-    </section>
-
-    <!-- Tech Stack -->
-    <section class="text-center">
-      <h2 class="text-3xl font-bold mb-8">Built With</h2>
-      <div class="flex flex-wrap justify-center items-center gap-8 text-muted-foreground">
-        <div class="flex items-center space-x-2 transition-colors hover:text-foreground">
-          <Icon name="logos:nuxt-icon" class="h-6 w-6" />
-          <span>Nuxt 3</span>
         </div>
-        <div class="flex items-center space-x-2 transition-colors hover:text-foreground">
-          <Icon name="logos:vue" class="h-6 w-6" />
-          <span>Vue 3</span>
+
+        <!-- Textarea -->
+        <div class="flex-1 relative overflow-hidden" :class="{ 'hidden lg:block': showPreview }">
+          <Textarea
+            ref="textareaRef"
+            v-model="markdownInput"
+            placeholder="Start typing your markdown here..."
+            :class="[
+              'h-full w-full resize-none border-0 bg-transparent p-4 focus-visible:ring-0 font-mono text-sm leading-relaxed',
+              wordWrap ? '' : 'whitespace-nowrap overflow-x-auto'
+            ]"
+            spellcheck="false"
+            @input="onInputChange"
+          />
         </div>
-        <div class="flex items-center space-x-2 transition-colors hover:text-foreground">
-          <Icon name="logos:tailwindcss-icon" class="h-6 w-6" />
-          <span>Tailwind CSS</span>
-        </div>
-        <div class="flex items-center space-x-2 transition-colors hover:text-foreground">
-          <Icon name="logos:typescript-icon" class="h-6 w-6" />
-          <span>TypeScript</span>
-        </div>
-        <div class="flex items-center space-x-2 transition-colors hover:text-foreground">
-          <Icon name="logos:vitejs" class="h-6 w-6" />
-          <span>Vite</span>
+
+        <!-- Editor Status -->
+        <div class="px-4 py-2 border-t bg-muted/50 text-xs text-muted-foreground flex justify-between flex-shrink-0">
+          <span>{{ stats.characters }} characters</span>
+          <span>{{ stats.lines }} lines</span>
         </div>
       </div>
-    </section>
+
+      <!-- Resize Handle -->
+      <div 
+        class="relative flex-shrink-0 group"
+        :class="[
+          isAtEdge ? 'w-2 bg-border/50 hover:bg-accent' : 'w-1 bg-border hover:bg-accent'
+        ]"
+        @mousedown="startResize"
+        @touchstart="startResize"
+        @dblclick="resetToCenter"
+        :title="isAtEdge ? 'Double-click to center panels' : 'Drag to resize panels'"
+        style="cursor: col-resize;"
+      >
+        <!-- Visual handle indicator -->
+        <div class="absolute inset-y-0 -left-1 -right-1 bg-transparent group-hover:bg-accent/20 transition-colors">
+          <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-8 bg-muted-foreground/30 rounded-full group-hover:bg-accent-foreground/60 transition-colors"></div>
+        </div>
+        
+        <!-- Reset hint when at edges -->
+        <div 
+          v-if="isAtEdge"
+          class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+        >
+          <div class="bg-popover text-popover-foreground px-2 py-1 rounded text-xs whitespace-nowrap shadow-md">
+            Double-click to center
+          </div>
+        </div>
+      </div>
+
+      <!-- Preview Panel -->
+      <div 
+        class="flex flex-col"
+        :style="{ width: `${previewWidth}%` }"
+        :class="{ 'hidden lg:flex': !showPreview && editorWidth > 5 }"
+      >
+        <!-- Preview Header -->
+        <div class="px-4 py-2 border-b bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <Icon name="lucide:eye" class="w-4 h-4" />
+            Preview
+          </div>
+          <div class="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              class="lg:hidden h-6 w-6 p-0"
+              @click="togglePreview"
+            >
+              <Icon name="lucide:edit-3" class="h-3 w-3" />
+            </Button>
+          </div>
+        </div>
+
+        <!-- Preview Content -->
+        <div class="flex-1 overflow-auto bg-background">
+          <div 
+            v-if="renderedHtml"
+            class="p-6 prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-m-20 prose-headings:tracking-tight prose-h1:text-2xl lg:prose-h1:text-4xl prose-h1:font-extrabold prose-h2:text-xl lg:prose-h2:text-3xl prose-h2:font-semibold prose-h3:text-lg lg:prose-h3:text-2xl prose-h3:font-semibold prose-h4:text-base lg:prose-h4:text-xl prose-h4:font-semibold prose-p:leading-7 prose-blockquote:border-l-2 prose-blockquote:pl-6 prose-blockquote:italic prose-pre:overflow-x-auto prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded-md prose-code:relative prose-code:rounded prose-code:bg-muted prose-code:px-2 prose-code:py-1 prose-code:font-mono prose-code:text-sm prose-table:text-sm"
+            v-html="renderedHtml"
+          />
+          <div v-else class="p-6 flex items-center justify-center h-full text-muted-foreground">
+            <div class="text-center">
+              <Icon name="lucide:file-text" class="h-12 w-12 mx-auto mb-4 opacity-40" />
+              <p class="text-lg font-medium mb-2">Start typing to see preview</p>
+              <p class="text-sm opacity-70">Your markdown will appear here</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Bar -->
+    <div class="border-t bg-muted/50 px-6 py-2 text-xs text-muted-foreground flex items-center justify-between flex-shrink-0">
+      <div class="flex items-center gap-4">
+        <span class="flex items-center gap-1">
+          <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+          Live Preview
+        </span>
+        <span>•</span>
+        <span>{{ stats.words }} words</span>
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Markdown</span>
+        <span>•</span>
+        <span>UTF-8</span>
+        <span>•</span>
+        <span>Ln {{ cursorPosition.line }}, Col {{ cursorPosition.column }}</span>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Basic SEO for the home page
-useSeoMeta({
-  title: 'Nuxt Shadcn Boilerplate',
-  description: 'A modern Nuxt 4 boilerplate with shadcn-vue, Tailwind CSS, VueUse, color mode, and SEO.',
-  ogTitle: 'Nuxt Shadcn Boilerplate',
-  ogDescription: 'A modern Nuxt 4 boilerplate with shadcn-vue, Tailwind CSS, VueUse, color mode, and SEO.',
-  ogType: 'website',
+// Composables
+const { markdownInput, renderedHtml, textareaRef, wordWrap, showPreview, cursorPosition, stats, onInputChange, toggleWordWrap, togglePreview } = useMarkdownEditor()
+
+const { editorWidth, previewWidth, isAtEdge, startResize, resetToCenter } = useResizablePanels()
+
+// Global state
+const isFullscreen = useState('isFullscreen', () => false)
+const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
+
+// Watch for reset panels events from navbar
+watch(resetPanelsEvent, (timestamp) => {
+  if (timestamp > 0) {
+    resetToCenter()
+  }
 })
 
-defineOgImageComponent('NuxtSeo')
+// SEO configuration
+useSeoMeta({
+  title: 'Markdown Preview - Live Editor',
+  description: 'A beautiful, modern markdown editor with live preview, syntax highlighting, and professional formatting tools. Built with Nuxt.js and Vue 3.',
+})
 </script>
+
+<style>
+</style>

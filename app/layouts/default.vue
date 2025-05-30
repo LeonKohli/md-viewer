@@ -1,34 +1,53 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-background text-foreground transition-colors duration-300">
-    <Navbar />
+  <div class="h-screen flex flex-col bg-background text-foreground transition-colors duration-300 overflow-hidden">
+    <!-- Enhanced navbar for the markdown viewer -->
+    <MarkdownNavbar 
+      v-model:markdown-content="markdownContent"
+      v-model:is-fullscreen="isFullscreen"
+      @clear-content="handleClearContent"
+      @load-sample="handleLoadSample"
+      @reset-panels="handleResetPanels"
+      class="flex-shrink-0"
+    />
 
-    <main class="flex-1" role="main">
+    <main class="flex-1 overflow-hidden" role="main">
       <slot />
     </main>
-
-    <footer role="contentinfo" class="py-6 px-4 text-center text-xs text-muted-foreground border-t">
-      <p>&copy; {{ new Date().getFullYear() }} Nuxt Shadcn Boilerplate. Built with modern web technologies.</p>
-      <p class="mt-2 text-xs text-muted-foreground">
-        A production-ready starter template for your next project.
-      </p>
-    </footer>
   </div>
 </template>
 
 <script setup lang="ts">
-// Basic SEO meta tags for the layout
+// Global states for the markdown editor
+const markdownContent = useState('markdownContent', () => '')
+const isFullscreen = useState('isFullscreen', () => false)
+const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
+
+// Event handlers
+const handleClearContent = () => {
+  // Additional logic can be added here if needed
+}
+
+const handleLoadSample = () => {
+  // Additional logic can be added here if needed
+}
+
+const handleResetPanels = () => {
+  resetPanelsEvent.value = Date.now()
+}
+
+// SEO meta tags for the layout
 useSeoMeta({
-  title: 'Nuxt Shadcn Boilerplate',
-  ogTitle: 'Nuxt Shadcn Boilerplate',
-  description: 'A modern Nuxt 3 boilerplate with shadcn-vue, Tailwind CSS, VueUse, color mode, and SEO optimization.',
-  ogDescription: 'A modern Nuxt 3 boilerplate with shadcn-vue, Tailwind CSS, VueUse, color mode, and SEO optimization.',
+  title: 'Markdown Preview - Live Editor',
+  ogTitle: 'Markdown Preview - Live Editor',
+  description: 'A beautiful, modern markdown editor with live preview, syntax highlighting, and professional formatting tools. Built with Nuxt.js and Vue 3.',
+  ogDescription: 'A beautiful, modern markdown editor with live preview, syntax highlighting, and professional formatting tools.',
 })
 
 // Define Schema.org structured data
 useSchemaOrg([
   defineWebSite({
-    name: 'Nuxt Shadcn Boilerplate',
-    description: 'A modern Nuxt 3 boilerplate with shadcn-vue, Tailwind CSS, VueUse, color mode, and SEO optimization.',
+    name: 'Markdown Preview',
+    description: 'A beautiful, modern markdown editor with live preview, syntax highlighting, and professional formatting tools.',
   }),
 ])
 </script>
