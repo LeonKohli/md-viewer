@@ -68,6 +68,22 @@ marked.setOptions({
   gfm: true,
 })
 
+// Function to add IDs to headings for TOC navigation
+function addHeadingIds(html: string): string {
+  return html.replace(/<h([1-6])>(.*?)<\/h\1>/gi, (match, level, text) => {
+    // Create a URL-safe ID from the heading text
+    const id = text
+      .toLowerCase()
+      .replace(/<[^>]*>/g, '') // Remove any HTML tags
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/\s+/g, '-') // Replace spaces with hyphens
+      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+      .trim()
+    
+    return `<h${level} id="${id}">${text}</h${level}>`
+  })
+}
+
 // Function to add copy buttons to code blocks
 function addCopyButtons(html: string): string {
   // Replace pre>code blocks with wrapped versions
@@ -110,8 +126,10 @@ export default defineNuxtPlugin(() => {
   return {
     provide: {
       md: (raw: string) => {
-        const html = marked.parse(raw) as string
-        return addCopyButtons(html)
+        let html = marked.parse(raw) as string
+        html = addHeadingIds(html)
+        html = addCopyButtons(html)
+        return html
       }
     }
   }

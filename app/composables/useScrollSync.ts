@@ -17,6 +17,9 @@ export function useScrollSync() {
   // Flag to prevent feedback loops
   let syncingFrom: 'editor' | 'preview' | null = null
   
+  // Flag for programmatic scrolling (e.g., from TOC)
+  let isProgrammaticScroll = false
+  
   // Calculate scroll percentage
   const getScrollPercentage = (element: HTMLElement): number => {
     const { scrollTop, scrollHeight, clientHeight } = element
@@ -35,7 +38,8 @@ export function useScrollSync() {
     
     const targetScrollTop = (percentage / 100) * maxScroll
     
-    if (smooth && 'scrollTo' in element) {
+    // Always use smooth scrolling during programmatic scrolls
+    if ((smooth || isProgrammaticScroll) && 'scrollTo' in element) {
       element.scrollTo({
         top: targetScrollTop,
         behavior: 'smooth'
@@ -70,6 +74,7 @@ export function useScrollSync() {
   const syncFromPreview = useThrottleFn(() => {
     if (!isEnabled.value || !editorElement.value || !previewElement.value) return
     if (syncingFrom === 'editor') return
+    if (isProgrammaticScroll) return // Don't sync programmatic scrolls
     
     syncingFrom = 'preview'
     isSyncing.value = true
@@ -199,6 +204,37 @@ export function useScrollSync() {
       : 'Scroll sync disabled - Click to enable'
   })
   
+  // Programmatic scroll to a specific element
+  const scrollToElement = (element: HTMLElement) => {
+    if (!previewElement.value) return
+    
+    // Set flag to prevent feedback loops but allow smooth sync
+    isProgrammaticScroll = true
+    
+    // Calculate position relative to preview container
+    const container = previewElement.value
+    const rect = element.getBoundingClientRect()
+    const containerRect = container.getBoundingClientRect()
+    const relativeTop = rect.top - containerRect.top + container.scrollTop
+    
+    // Scroll preview with a small offset for better visibility
+    container.scrollTo({
+      top: relativeTop - 20,
+      behavior: 'smooth'
+    })
+    
+    // Calculate and sync editor position if enabled
+    if (isEnabled.value && editorElement.value) {
+      const percentage = ((relativeTop - 20) / (container.scrollHeight - container.clientHeight)) * 100
+      setScrollPercentage(editorElement.value, percentage, true)
+    }
+    
+    // Reset flag after scroll completes
+    setTimeout(() => {
+      isProgrammaticScroll = false
+    }, 600) // Give smooth scroll time to complete
+  }
+  
   return {
     // State
     syncEnabled: isEnabled,
@@ -215,5 +251,6 @@ export function useScrollSync() {
     syncToTop,
     syncToBottom,
     restoreScrollPosition,
+    scrollToElement,
   }
 }

@@ -31,6 +31,7 @@ export interface MarkdownNavbarEmits {
   (e: 'clearContent'): void
   (e: 'loadSample'): void
   (e: 'resetPanels'): void
+  (e: 'toggleToc'): void
 }
 
 // App state types

@@ -9,6 +9,18 @@
       
       <!-- Toolbar Actions -->
       <div class="flex items-center gap-3">
+        <!-- Table of Contents button -->
+        <Button 
+          variant="ghost" 
+          size="default"
+          @click="toggleToc"
+          :title="`Toggle Table of Contents (${isMac ? 'Cmd' : 'Ctrl'}+/)`"
+          :class="{ 'bg-accent text-accent-foreground': showToc }"
+        >
+          <Icon name="lucide:list" class="w-5 h-5 mr-2" />
+          TOC
+        </Button>
+        
         <!-- Reset panels button -->
         <Button 
           variant="ghost" 
@@ -119,6 +131,17 @@ const props = withDefaults(defineProps<MarkdownNavbarProps>(), {
   isFullscreen: false
 })
 
+// Get TOC state
+const showToc = useState('showToc', () => false)
+
+// Detect if Mac for keyboard shortcuts
+const isMac = computed(() => {
+  if (process.client) {
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0
+  }
+  return false
+})
+
 const emit = defineEmits<MarkdownNavbarEmits>()
 
 // Toggle functions
@@ -141,7 +164,7 @@ const copyMarkdown = async () => {
   try {
     await navigator.clipboard.writeText(props.markdownContent || '')
     // Show success feedback - could implement toast notification here
-    console.log('Markdown copied to clipboard!')
+    // Successfully copied to clipboard
   } catch (err) {
     console.error('Failed to copy markdown:', err)
     // Fallback for older browsers
@@ -152,7 +175,7 @@ const copyMarkdown = async () => {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      console.log('Markdown copied to clipboard (fallback)!')
+      // Successfully copied via fallback method
     } catch (fallbackErr) {
       console.error('Failed to copy markdown with fallback:', fallbackErr)
     }
@@ -231,6 +254,10 @@ const loadSample = () => {
 
 const resetPanels = () => {
   emit('resetPanels')
+}
+
+const toggleToc = () => {
+  emit('toggleToc')
 }
 
 // Auto-load sample content on mount if no content exists

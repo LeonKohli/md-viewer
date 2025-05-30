@@ -7,6 +7,7 @@
       @clear-content="handleClearContent"
       @load-sample="handleLoadSample"
       @reset-panels="handleResetPanels"
+      @toggle-toc="handleToggleToc"
       class="flex-shrink-0"
     />
 
@@ -21,6 +22,7 @@
 const markdownContent = useState('markdownContent', () => '')
 const isFullscreen = useState('isFullscreen', () => false)
 const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
+const showToc = useState('showToc', () => false)
 
 // Event handlers
 const handleClearContent = () => {
@@ -34,6 +36,26 @@ const handleLoadSample = () => {
 const handleResetPanels = () => {
   resetPanelsEvent.value = Date.now()
 }
+
+const handleToggleToc = () => {
+  showToc.value = !showToc.value
+}
+
+// Add keyboard shortcut for TOC (Ctrl/Cmd + /)
+onMounted(() => {
+  const handleKeydown = (e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      e.preventDefault()
+      handleToggleToc()
+    }
+  }
+  
+  window.addEventListener('keydown', handleKeydown)
+  
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown)
+  })
+})
 
 // SEO meta tags for the layout
 useSeoMeta({

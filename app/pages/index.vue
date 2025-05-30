@@ -147,6 +147,25 @@
           </div>
         </div>
       </div>
+      
+      <!-- Table of Contents Panel -->
+      <Transition
+        enter-active-class="transition-transform duration-200 ease-out"
+        enter-from-class="translate-x-full"
+        enter-to-class="translate-x-0"
+        leave-active-class="transition-transform duration-200 ease-in"
+        leave-from-class="translate-x-0"
+        leave-to-class="translate-x-full"
+      >
+        <div v-if="showToc" class="absolute right-0 top-0 h-full shadow-xl">
+          <TableOfContents
+            :headings="tocHeadings"
+            :active-heading-id="activeHeadingId"
+            @navigate="navigateToHeading"
+            @close="showToc = false"
+          />
+        </div>
+      </Transition>
     </div>
 
     <!-- Status Bar -->
@@ -186,6 +205,10 @@
 </template>
 
 <script setup lang="ts">
+import { useDebounceFn } from '@vueuse/core'
+import TableOfContents from '~/components/TableOfContents.vue'
+import { useTableOfContents } from '~/composables/useTableOfContents'
+
 // Composables
 const { markdownInput, renderedHtml, textareaRef, wordWrap, showPreview, cursorPosition, stats, onInputChange, toggleWordWrap, togglePreview } = useMarkdownEditor()
 
@@ -199,15 +222,65 @@ const {
   scrollSyncStatus,
   setEditorElement,
   setPreviewElement,
-  restoreScrollPosition
+  restoreScrollPosition,
+  scrollToElement
 } = useScrollSync()
 
 // Preview container ref
 const previewContainerRef = ref<HTMLElement>()
 
+// Table of Contents
+const { 
+  headings: tocHeadings, 
+  activeHeadingId, 
+  updateActiveHeading,
+  setActiveHeading
+} = useTableOfContents(markdownInput)
+
+// Navigate to heading using scroll sync
+const navigateToHeading = (id: string) => {
+  const element = document.getElementById(id)
+  if (element) {
+    // Immediately set this as the active heading
+    setActiveHeading(id)
+    scrollToElement(element)
+  }
+}
+
+// Set up active heading detection
+const updateActiveHeadingDebounced = useDebounceFn(() => {
+  if (previewContainerRef.value) {
+    updateActiveHeading(previewContainerRef.value)
+  }
+}, 100)
+
+// Set up scroll listener when preview element is ready
+let scrollListener: (() => void) | null = null
+
+watch(previewContainerRef, (newContainer, oldContainer) => {
+  // Remove old listener
+  if (oldContainer && scrollListener) {
+    oldContainer.removeEventListener('scroll', scrollListener)
+  }
+  
+  // Add new listener
+  if (newContainer) {
+    scrollListener = () => updateActiveHeadingDebounced()
+    newContainer.addEventListener('scroll', scrollListener, { passive: true })
+  }
+})
+
+// Clean up on unmount
+onUnmounted(() => {
+  if (previewContainerRef.value && scrollListener) {
+    previewContainerRef.value.removeEventListener('scroll', scrollListener)
+  }
+})
+
 // Global state
 const isFullscreen = useState('isFullscreen', () => false)
 const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
+const showToc = useState('showToc', () => false)
 
 // Watch for reset panels events from navbar
 watch(resetPanelsEvent, (timestamp) => {
@@ -234,6 +307,10 @@ watch(renderedHtml, () => {
   if (syncEnabled.value) {
     restoreScrollPosition()
   }
+  // Update active heading after content renders
+  nextTick(() => {
+    updateActiveHeadingDebounced()
+  })
 })
 
 // SEO configuration

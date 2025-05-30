@@ -10,7 +10,10 @@ export function useMarkdownEditor() {
   // Local reactive state
   const markdownInput = ref('')
   const renderedHtml = ref('')
-  const textareaRef = ref<HTMLTextAreaElement>()
+  const textareaRef = ref<{ textareaElement?: HTMLTextAreaElement }>()
+  
+  // Computed ref to the actual textarea element
+  const textareaElement = computed(() => textareaRef.value?.textareaElement)
   
   // Editor preferences
   const wordWrap = ref(true)
@@ -31,7 +34,7 @@ export function useMarkdownEditor() {
   
   // Update cursor position
   const updateCursorPosition = () => {
-    const textarea = textareaRef.value
+    const textarea = textareaRef.value?.textareaElement
     if (!textarea) return
     
     const cursorPos = textarea.selectionStart
@@ -91,8 +94,8 @@ export function useMarkdownEditor() {
   })
   
   // Setup textarea event listeners
-  useEventListener(textareaRef, 'click', handleTextareaInteraction)
-  useEventListener(textareaRef, 'keyup', handleTextareaInteraction)
+  useEventListener(textareaElement, 'click', handleTextareaInteraction)
+  useEventListener(textareaElement, 'keyup', handleTextareaInteraction)
   
   // Initialize content
   onMounted(() => {
