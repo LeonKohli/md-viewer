@@ -7,17 +7,36 @@
     <div class="flex flex-1 overflow-hidden relative">
       <!-- Editor Panel -->
       <div 
-        class="border-r flex flex-col"
+        class="border-r border-border flex flex-col"
         :style="{ width: `${editorWidth}%` }"
         v-show="editorWidth > 5"
       >
         <!-- Editor Header -->
-        <div class="px-4 py-2 border-b bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
+        <div class="px-4 py-2 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
           <div class="flex items-center gap-2">
             <Icon name="lucide:file-text" class="w-4 h-4" />
             Editor
           </div>
           <div class="flex items-center gap-2 text-xs">
+            <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <Button 
+                  variant="ghost"
+                  size="sm" 
+                  @click="toggleSync"
+                  :class="{ 'bg-accent text-accent-foreground': syncEnabled }"
+                  class="px-2 py-1 h-6"
+                >
+                  <Icon :name="scrollSyncIcon" class="h-3 w-3 mr-1" />
+                  <span class="text-xs">Sync</span>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{{ scrollSyncTooltip }}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
             <Button 
               variant="ghost"
               size="sm" 
@@ -45,7 +64,7 @@
             v-model="markdownInput"
             placeholder="Start typing your markdown here..."
             :class="[
-              'h-full w-full resize-none border-0 bg-transparent p-4 focus-visible:ring-0 font-mono text-sm leading-relaxed',
+              'h-full w-full resize-none border-0 bg-transparent dark:bg-transparent p-4 focus-visible:ring-0 font-mono text-sm leading-relaxed',
               wordWrap ? '' : 'whitespace-nowrap overflow-x-auto'
             ]"
             spellcheck="false"
@@ -54,7 +73,7 @@
         </div>
 
         <!-- Editor Status -->
-        <div class="px-4 py-2 border-t bg-muted/50 text-xs text-muted-foreground flex justify-between flex-shrink-0">
+        <div class="px-4 py-2 border-t border-border bg-muted/50 text-xs text-muted-foreground flex justify-between flex-shrink-0">
           <span>{{ stats.characters }} characters</span>
           <span>{{ stats.lines }} lines</span>
         </div>
@@ -73,8 +92,8 @@
         style="cursor: col-resize;"
       >
         <!-- Visual handle indicator -->
-        <div class="absolute inset-y-0 -left-1 -right-1 bg-transparent group-hover:bg-accent/20 transition-colors">
-          <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-8 bg-muted-foreground/30 rounded-full group-hover:bg-accent-foreground/60 transition-colors"></div>
+        <div class="absolute inset-y-0 -left-1 -right-1 bg-transparent group-hover:bg-accent/20 dark:group-hover:bg-accent/10 transition-colors">
+          <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-8 bg-muted-foreground/30 dark:bg-muted-foreground/20 rounded-full group-hover:bg-accent-foreground/60 dark:group-hover:bg-accent-foreground/40 transition-colors"></div>
         </div>
         
         <!-- Reset hint when at edges -->
@@ -95,7 +114,7 @@
         :class="{ 'hidden lg:flex': !showPreview && editorWidth > 5 }"
       >
         <!-- Preview Header -->
-        <div class="px-4 py-2 border-b bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
+        <div class="px-4 py-2 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
           <div class="flex items-center gap-2">
             <Icon name="lucide:eye" class="w-4 h-4" />
             Preview
@@ -113,10 +132,10 @@
         </div>
 
         <!-- Preview Content -->
-        <div class="flex-1 overflow-auto bg-background">
+        <div ref="previewContainerRef" class="flex-1 overflow-auto bg-background">
           <div 
             v-if="renderedHtml"
-            class="p-6 prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-m-20 prose-headings:tracking-tight prose-h1:text-2xl lg:prose-h1:text-4xl prose-h1:font-extrabold prose-h2:text-xl lg:prose-h2:text-3xl prose-h2:font-semibold prose-h3:text-lg lg:prose-h3:text-2xl prose-h3:font-semibold prose-h4:text-base lg:prose-h4:text-xl prose-h4:font-semibold prose-p:leading-7 prose-blockquote:border-l-2 prose-blockquote:pl-6 prose-blockquote:italic prose-pre:overflow-x-auto prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded-md prose-code:relative prose-code:rounded prose-code:bg-muted prose-code:px-2 prose-code:py-1 prose-code:font-mono prose-code:text-sm prose-table:text-sm"
+            class="p-6 prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-m-20 prose-headings:tracking-tight prose-h1:text-2xl lg:prose-h1:text-4xl prose-h1:font-extrabold prose-h2:text-xl lg:prose-h2:text-3xl prose-h2:font-semibold prose-h3:text-lg lg:prose-h3:text-2xl prose-h3:font-semibold prose-h4:text-base lg:prose-h4:text-xl prose-h4:font-semibold prose-p:leading-7 prose-blockquote:border-l-2 prose-blockquote:pl-6 prose-blockquote:italic prose-code:relative prose-code:rounded prose-code:font-mono prose-code:text-sm prose-table:text-sm dark:prose-headings:text-foreground dark:prose-p:text-muted-foreground dark:prose-strong:text-foreground dark:prose-a:text-primary dark:prose-blockquote:text-muted-foreground dark:prose-blockquote:border-muted dark:prose-th:text-foreground dark:prose-td:text-muted-foreground"
             v-html="renderedHtml"
           />
           <div v-else class="p-6 flex items-center justify-center h-full text-muted-foreground">
@@ -131,11 +150,26 @@
     </div>
 
     <!-- Status Bar -->
-    <div class="border-t bg-muted/50 px-6 py-2 text-xs text-muted-foreground flex items-center justify-between flex-shrink-0">
+    <div class="border-t border-border bg-muted/50 px-6 py-2 text-xs text-muted-foreground flex items-center justify-between flex-shrink-0">
       <div class="flex items-center gap-4">
         <span class="flex items-center gap-1">
-          <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+          <div class="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full"></div>
           Live Preview
+        </span>
+        <span>•</span>
+        <span class="flex items-center gap-1">
+          <Icon 
+            :name="scrollSyncIcon" 
+            class="h-3 w-3"
+            :class="{
+              'text-green-500 dark:text-green-400': scrollSyncStatus === 'enabled',
+              'text-orange-500 dark:text-orange-400': scrollSyncStatus === 'syncing',
+              'text-muted-foreground': scrollSyncStatus === 'disabled'
+            }"
+          />
+          <span>
+            Scroll {{ scrollSyncStatus === 'disabled' ? 'sync off' : scrollSyncStatus === 'syncing' ? 'syncing...' : 'sync on' }}
+          </span>
         </span>
         <span>•</span>
         <span>{{ stats.words }} words</span>
@@ -157,6 +191,20 @@ const { markdownInput, renderedHtml, textareaRef, wordWrap, showPreview, cursorP
 
 const { editorWidth, previewWidth, isAtEdge, startResize, resetToCenter } = useResizablePanels()
 
+const { 
+  syncEnabled, 
+  toggleSync,
+  scrollSyncIcon,
+  scrollSyncTooltip,
+  scrollSyncStatus,
+  setEditorElement,
+  setPreviewElement,
+  restoreScrollPosition
+} = useScrollSync()
+
+// Preview container ref
+const previewContainerRef = ref<HTMLElement>()
+
 // Global state
 const isFullscreen = useState('isFullscreen', () => false)
 const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
@@ -168,6 +216,26 @@ watch(resetPanelsEvent, (timestamp) => {
   }
 })
 
+// Set up scroll sync elements
+watchEffect(() => {
+  // Access the actual textarea element from the Textarea component
+  if (textareaRef.value && textareaRef.value.textareaElement) {
+    setEditorElement(textareaRef.value.textareaElement)
+  }
+  
+  // Set the preview container element
+  if (previewContainerRef.value) {
+    setPreviewElement(previewContainerRef.value)
+  }
+})
+
+// Restore scroll position when content changes
+watch(renderedHtml, () => {
+  if (syncEnabled.value) {
+    restoreScrollPosition()
+  }
+})
+
 // SEO configuration
 useSeoMeta({
   title: 'Markdown Preview - Live Editor',
@@ -176,4 +244,8 @@ useSeoMeta({
 </script>
 
 <style>
+/* Ensure code blocks use our custom dark mode styles */
+.prose pre code.hljs {
+  background: transparent !important;
+}
 </style>

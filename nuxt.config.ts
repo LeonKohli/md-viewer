@@ -27,7 +27,7 @@ export default defineNuxtConfig({
   },
   css: [
     '~/assets/css/main.css',
-    'highlight.js/styles/github.css'
+    // Removed highlight.js theme - custom dark mode styles in main.css
   ],
   shadcn: {
     prefix: '',
