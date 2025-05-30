@@ -1,23 +1,20 @@
 <template>
-  <div :class="[
-    'h-full flex flex-col',
-    isFullscreen ? 'fixed inset-0 z-50 bg-background' : ''
-  ]">
+  <div class="h-full flex flex-col">
     <!-- Main Content -->
     <div class="flex flex-1 overflow-hidden relative">
       <!-- Editor Panel -->
       <div 
         class="border-r border-border flex flex-col"
-        :style="{ width: `${editorWidth}%` }"
-        v-show="editorWidth > 5"
+        :style="{ width: `${isFocusMode ? 0 : editorWidth}%` }"
+        v-show="!isFocusMode && editorWidth > 5"
       >
         <!-- Editor Header -->
-        <div class="px-4 py-2 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
+        <div class="px-4 py-1.5 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
           <div class="flex items-center gap-2">
             <Icon name="lucide:file-text" class="w-4 h-4" />
             Editor
           </div>
-          <div class="flex items-center gap-2 text-xs">
+          <div class="flex items-center gap-2">
             <TooltipProvider>
             <Tooltip>
               <TooltipTrigger as-child>
@@ -26,10 +23,10 @@
                   size="sm" 
                   @click="toggleSync"
                   :class="{ 'bg-accent text-accent-foreground': syncEnabled }"
-                  class="px-2 py-1 h-6"
+                  class="h-7 px-2 text-xs"
                 >
                   <Icon :name="scrollSyncIcon" class="h-3 w-3 mr-1" />
-                  <span class="text-xs">Sync</span>
+                  <span>Sync</span>
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
@@ -42,14 +39,14 @@
               size="sm" 
               @click="toggleWordWrap"
               :class="{ 'bg-accent text-accent-foreground': wordWrap }"
-              class="px-2 py-1 h-6 text-xs"
+              class="h-7 px-2 text-xs"
             >
               Wrap
             </Button>
             <Button 
               variant="ghost" 
               size="sm" 
-              class="lg:hidden h-6 w-6 p-0"
+              class="lg:hidden p-1"
               @click="togglePreview"
             >
               <Icon :name="showPreview ? 'lucide:edit-3' : 'lucide:eye'" class="h-3 w-3" />
@@ -81,6 +78,7 @@
 
       <!-- Resize Handle -->
       <div 
+        v-show="!isFocusMode"
         class="relative flex-shrink-0 group"
         :class="[
           isAtEdge ? 'w-2 bg-border/50 hover:bg-accent' : 'w-1 bg-border hover:bg-accent'
@@ -110,20 +108,31 @@
       <!-- Preview Panel -->
       <div 
         class="flex flex-col"
-        :style="{ width: `${previewWidth}%` }"
-        :class="{ 'hidden lg:flex': !showPreview && editorWidth > 5 }"
+        :style="{ width: `${isFocusMode ? 100 : previewWidth}%` }"
+        :class="{ 'hidden lg:flex': !showPreview && editorWidth > 5 && !isFocusMode }"
       >
         <!-- Preview Header -->
-        <div class="px-4 py-2 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
+        <div class="px-4 py-1.5 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
           <div class="flex items-center gap-2">
             <Icon name="lucide:eye" class="w-4 h-4" />
             Preview
           </div>
           <div class="flex items-center gap-2">
             <Button 
+              variant="ghost"
+              size="sm" 
+              @click="toggleFocusMode"
+              :class="{ 'bg-accent text-accent-foreground': isFocusMode }"
+              class="h-7 px-2 text-xs hidden lg:flex"
+              title="Toggle focus mode"
+            >
+              <Icon :name="isFocusMode ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="h-3 w-3 mr-1" />
+              <span>{{ isFocusMode ? 'Exit' : 'Focus' }}</span>
+            </Button>
+            <Button 
               variant="ghost" 
               size="sm" 
-              class="lg:hidden h-6 w-6 p-0"
+              class="lg:hidden p-1"
               @click="togglePreview"
             >
               <Icon name="lucide:edit-3" class="h-3 w-3" />
@@ -280,10 +289,23 @@ const isFullscreen = useState('isFullscreen', () => false)
 const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
 const showToc = useState('showToc', () => false)
 
+// Local state
+const isFocusMode = ref(false)
+
+// Toggle focus mode
+const toggleFocusMode = () => {
+  isFocusMode.value = !isFocusMode.value
+  // Exit focus mode when resetting panels
+  if (isFocusMode.value) {
+    showToc.value = false
+  }
+}
+
 // Watch for reset panels events from navbar
 watch(resetPanelsEvent, (timestamp) => {
   if (timestamp > 0) {
     resetToCenter()
+    isFocusMode.value = false
   }
 })
 

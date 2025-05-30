@@ -1,5 +1,8 @@
 <template>
-  <div class="h-screen flex flex-col bg-background text-foreground transition-colors duration-300 overflow-hidden">
+  <div :class="[
+    'h-screen flex flex-col bg-background text-foreground transition-colors duration-300 overflow-hidden',
+    isFullscreen ? 'fixed inset-0 z-50' : ''
+  ]">
     <!-- Enhanced navbar for the markdown viewer -->
     <MarkdownNavbar 
       v-model:markdown-content="markdownContent"
@@ -41,9 +44,10 @@ const handleToggleToc = () => {
   showToc.value = !showToc.value
 }
 
-// Add keyboard shortcut for TOC (Ctrl/Cmd + /)
+// Add keyboard shortcuts
 onMounted(() => {
   const handleKeydown = (e: KeyboardEvent) => {
+    // TOC shortcut (Ctrl/Cmd + /)
     if ((e.ctrlKey || e.metaKey) && e.key === '/') {
       e.preventDefault()
       handleToggleToc()

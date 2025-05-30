@@ -1,55 +1,55 @@
 <template>
-  <header class="border-b bg-background px-6 py-4">
+  <header class="border-b bg-background px-4 py-2">
     <div class="flex items-center justify-between">
       <!-- Logo and title -->
-      <div class="flex items-center gap-3">
-        <Icon name="lucide:file-text" class="w-6 h-6 text-primary" />
-        <h1 class="text-xl font-semibold">Markdown Preview</h1>
+      <div class="flex items-center gap-2">
+        <Icon name="lucide:file-text" class="w-5 h-5 text-primary" />
+        <h1 class="text-lg font-semibold">Markdown Preview</h1>
       </div>
       
       <!-- Toolbar Actions -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
         <!-- Table of Contents button -->
         <Button 
           variant="ghost" 
-          size="default"
+          size="sm"
           @click="toggleToc"
           :title="`Toggle Table of Contents (${isMac ? 'Cmd' : 'Ctrl'}+/)`"
           :class="{ 'bg-accent text-accent-foreground': showToc }"
         >
-          <Icon name="lucide:list" class="w-5 h-5 mr-2" />
+          <Icon name="lucide:list" class="w-4 h-4 mr-1.5" />
           TOC
         </Button>
         
         <!-- Reset panels button -->
         <Button 
           variant="ghost" 
-          size="default"
+          size="sm"
           @click="resetPanels"
           title="Reset to 50/50 split"
         >
-          <Icon name="lucide:layout-panel-left" class="w-5 h-5 mr-2" />
+          <Icon name="lucide:layout-panel-left" class="w-4 h-4 mr-1.5" />
           Reset
         </Button>
         
         <!-- Copy button -->
         <Button 
           variant="ghost" 
-          size="default"
+          size="sm"
           @click="copyMarkdown"
           title="Copy markdown"
         >
-          <Icon name="lucide:copy" class="w-5 h-5 mr-2" />
+          <Icon name="lucide:copy" class="w-4 h-4 mr-1.5" />
           Copy
         </Button>
         
         <!-- Download dropdown -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="default">
-              <Icon name="lucide:download" class="w-5 h-5 mr-2" />
+            <Button variant="ghost" size="sm">
+              <Icon name="lucide:download" class="w-4 h-4 mr-1.5" />
               Export
-              <Icon name="lucide:chevron-down" class="w-4 h-4 ml-2" />
+              <Icon name="lucide:chevron-down" class="w-3 h-3 ml-1" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-56">
@@ -79,18 +79,18 @@
         <!-- Fullscreen button -->
         <Button 
           variant="ghost" 
-          size="default"
+          size="sm"
           @click="toggleFullscreen"
-          title="Toggle fullscreen"
+          :title="isFullscreen ? 'Exit fullscreen (ESC)' : 'Enter fullscreen'"
         >
-          <Icon name="lucide:maximize-2" class="w-5 h-5" />
+          <Icon :name="isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-4 h-4" />
         </Button>
 
         <!-- Mobile dropdown for smaller screens -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child class="md:hidden">
-            <Button variant="ghost" size="default">
-              <Icon name="lucide:more-horizontal" class="w-5 h-5" />
+            <Button variant="ghost" size="sm">
+              <Icon name="lucide:more-horizontal" class="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-48">
@@ -116,7 +116,8 @@
 
 <script setup lang="ts">
 import type { MarkdownNavbarProps, MarkdownNavbarEmits } from '~/types'
-import { SAMPLE_MARKDOWN, EXPORT_CONFIG } from '~/constants'
+import { EXPORT_CONFIG } from '~/constants'
+import { SAMPLE_MARKDOWN } from '~/constants/showcase-content'
 import {
   DropdownMenu,
   DropdownMenuContent,
