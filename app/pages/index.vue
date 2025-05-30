@@ -182,12 +182,11 @@
             class="h-3 w-3"
             :class="{
               'text-green-500 dark:text-green-400': scrollSyncStatus === 'enabled',
-              'text-orange-500 dark:text-orange-400': scrollSyncStatus === 'syncing',
               'text-muted-foreground': scrollSyncStatus === 'disabled'
             }"
           />
           <span>
-            Scroll {{ scrollSyncStatus === 'disabled' ? 'sync off' : scrollSyncStatus === 'syncing' ? 'syncing...' : 'sync on' }}
+            Scroll {{ scrollSyncStatus === 'disabled' ? 'sync off' : 'sync on' }}
           </span>
         </span>
         <span>•</span>
