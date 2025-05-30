@@ -222,7 +222,6 @@ const {
   scrollSyncStatus,
   setEditorElement,
   setPreviewElement,
-  restoreScrollPosition,
   scrollToElement
 } = useScrollSync()
 
@@ -302,11 +301,8 @@ watchEffect(() => {
   }
 })
 
-// Restore scroll position when content changes
+// Update active heading when content changes
 watch(renderedHtml, () => {
-  if (syncEnabled.value) {
-    restoreScrollPosition()
-  }
   // Update active heading after content renders
   nextTick(() => {
     updateActiveHeadingDebounced()
