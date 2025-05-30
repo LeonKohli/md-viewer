@@ -402,5 +402,42 @@
   .prose * + .code-block-wrapper {
     margin-top: 1rem !important;
   }
+
+  /* KaTeX math rendering styles - force left alignment */
+  .katex-display {
+    text-align: left !important;
+    margin: 1em 0 !important;
+    display: block !important;
+  }
+  
+  /* Target the actual math content */
+  .katex-display > .katex {
+    display: inline-block !important;
+    text-align: left !important;
+    margin-left: 2em !important;
+  }
+  
+  /* Override any centering from parent elements */
+  .prose .katex-display,
+  .prose-lg .katex-display,
+  .prose-xl .katex-display,
+  .prose-2xl .katex-display {
+    text-align: left !important;
+  }
+  
+  /* Force all katex-html to be left aligned */
+  .katex-html {
+    text-align: left !important;
+  }
+  
+  /* Ensure inline math has proper spacing */
+  .katex {
+    font-size: 1.1em; /* Slightly larger for better readability */
+  }
+  
+  /* Dark mode adjustments for math */
+  .dark .katex {
+    color: var(--foreground);
+  }
 }
 

@@ -1,5 +1,6 @@
 import { Marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
+import markedKatex from 'marked-katex-extension'
 import hljs from 'highlight.js/lib/core'
 
 // Register specific languages for better performance
@@ -31,29 +32,35 @@ hljs.registerLanguage('md', markdown)
 hljs.registerLanguage('python', python)
 hljs.registerLanguage('py', python)
 
-const marked = new Marked(
-  markedHighlight({
-    langPrefix: 'hljs language-',
-    highlight(code, lang) {
-      // Check if language is registered
-      if (lang && hljs.getLanguage(lang)) {
-        try {
-          return hljs.highlight(code, { language: lang }).value
-        } catch (err) {
-          console.warn('Syntax highlighting failed for language:', lang, err)
-        }
-      }
-      
-      // Fallback to auto-detection
+const marked = new Marked()
+
+// Add extensions
+marked.use(markedHighlight({
+  langPrefix: 'hljs language-',
+  highlight(code, lang) {
+    // Check if language is registered
+    if (lang && hljs.getLanguage(lang)) {
       try {
-        return hljs.highlightAuto(code).value
+        return hljs.highlight(code, { language: lang }).value
       } catch (err) {
-        console.warn('Auto syntax highlighting failed:', err)
-        return code // Return plain text as fallback
+        console.warn('Syntax highlighting failed for language:', lang, err)
       }
     }
-  })
-)
+    
+    // Fallback to auto-detection
+    try {
+      return hljs.highlightAuto(code).value
+    } catch (err) {
+      console.warn('Auto syntax highlighting failed:', err)
+      return code // Return plain text as fallback
+    }
+  }
+}))
+
+marked.use(markedKatex({
+  throwOnError: false,
+  output: 'html'
+}))
 
 // Configure marked options
 marked.setOptions({

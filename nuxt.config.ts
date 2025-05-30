@@ -28,6 +28,7 @@ export default defineNuxtConfig({
   css: [
     '~/assets/css/main.css',
     // Removed highlight.js theme - custom dark mode styles in main.css
+    'katex/dist/katex.min.css',
   ],
   shadcn: {
     prefix: '',
