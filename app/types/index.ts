@@ -1,3 +1,5 @@
+import type { TocItem } from '~/composables/useTableOfContents'
+
 // Markdown editor types
 export interface MarkdownStats {
   words: number
@@ -23,6 +25,8 @@ export interface ResizablePanelsOptions {
 export interface MarkdownNavbarProps {
   markdownContent?: string
   isFullscreen?: boolean
+  renderedHtml?: string
+  tocHeadings?: TocItem[]
 }
 
 export interface MarkdownNavbarEmits {
@@ -34,9 +38,4 @@ export interface MarkdownNavbarEmits {
   (e: 'toggleToc'): void
 }
 
-// App state types
-export interface AppState {
-  markdownContent: string
-  isFullscreen: boolean
-  resetPanelsEvent: number
-} 
+ 

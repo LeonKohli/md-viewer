@@ -7,6 +7,8 @@
     <MarkdownNavbar 
       v-model:markdown-content="markdownContent"
       v-model:is-fullscreen="isFullscreen"
+      :rendered-html="renderedHtml"
+      :toc-headings="tocHeadings"
       @clear-content="handleClearContent"
       @load-sample="handleLoadSample"
       @reset-panels="handleResetPanels"
@@ -26,6 +28,8 @@ const markdownContent = useState('markdownContent', () => '')
 const isFullscreen = useState('isFullscreen', () => false)
 const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
 const showToc = useState('showToc', () => false)
+const renderedHtml = useState<string>('renderedHtml', () => '')
+const tocHeadings = useState<any[]>('tocHeadings', () => [])
 
 // Event handlers
 const handleClearContent = () => {
@@ -45,21 +49,15 @@ const handleToggleToc = () => {
 }
 
 // Add keyboard shortcuts
-onMounted(() => {
-  const handleKeydown = (e: KeyboardEvent) => {
-    // TOC shortcut (Ctrl/Cmd + /)
-    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
-      e.preventDefault()
-      handleToggleToc()
-    }
+const handleKeydown = (e: KeyboardEvent) => {
+  // TOC shortcut (Ctrl/Cmd + /)
+  if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+    e.preventDefault()
+    handleToggleToc()
   }
-  
-  window.addEventListener('keydown', handleKeydown)
-  
-  onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown)
-  })
-})
+}
+
+useEventListener('keydown', handleKeydown)
 
 // SEO meta tags for the layout
 useSeoMeta({

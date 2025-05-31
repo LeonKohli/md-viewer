@@ -1,4 +1,3 @@
-import { ref, computed, watch, nextTick } from 'vue'
 import { useEventListener, useThrottleFn } from '@vueuse/core'
 
 export function useScrollSync() {

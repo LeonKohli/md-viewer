@@ -61,14 +61,31 @@
               <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
               Download as Text (.txt)
             </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Icon name="lucide:code" class="w-4 h-4 mr-2" />
+                Download as HTML
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem @click="downloadAsHtml('simple')">
+                  <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
+                  Simple (with TOC)
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="downloadAsHtml('simple-no-toc')">
+                  <Icon name="lucide:file" class="w-4 h-4 mr-2" />
+                  Simple (no TOC)
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem @click="downloadAsHtml('advanced')">
+                  <Icon name="lucide:layout-panel-left" class="w-4 h-4 mr-2" />
+                  Advanced (Sidebar TOC)
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="copyToClipboard">
               <Icon name="lucide:clipboard" class="w-4 h-4 mr-2" />
               Copy to Clipboard
-            </DropdownMenuItem>
-            <DropdownMenuItem @click="printMarkdown">
-              <Icon name="lucide:printer" class="w-4 h-4 mr-2" />
-              Print Preview
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -124,51 +141,62 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
 
 // Props and emits
 const props = withDefaults(defineProps<MarkdownNavbarProps>(), {
   markdownContent: '',
-  isFullscreen: false
+  isFullscreen: false,
+  renderedHtml: '',
+  tocHeadings: () => []
 })
 
 // Get TOC state
 const showToc = useState('showToc', () => false)
 
-// Detect if Mac for keyboard shortcuts
+/**
+ * Detect if the user is on a Mac for keyboard shortcut display.
+ * Uses the user agent string to check for 'Mac' in the platform.
+ * This avoids the need for a composable and works cross-browser.
+ */
 const isMac = computed(() => {
-  if (process.client) {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0
+  if (typeof window !== 'undefined' && window.navigator) {
+    return /Mac/.test(window.navigator.platform)
   }
   return false
 })
 
 const emit = defineEmits<MarkdownNavbarEmits>()
 
-// Toggle functions
+// Toggle fullscreen mode and handle browser fullscreen API
 const toggleFullscreen = () => {
   emit('update:isFullscreen', !props.isFullscreen)
-  
-  // Handle browser fullscreen API
   if (!props.isFullscreen) {
+    // Enter fullscreen if supported
     if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen()
     }
   } else {
+    // Exit fullscreen if supported
     if (document.exitFullscreen) {
       document.exitFullscreen()
     }
   }
 }
 
+/**
+ * Copy the markdown content to the clipboard.
+ * Uses the Clipboard API if available, otherwise falls back to a textarea method.
+ */
 const copyMarkdown = async () => {
   try {
     await navigator.clipboard.writeText(props.markdownContent || '')
-    // Show success feedback - could implement toast notification here
-    // Successfully copied to clipboard
+    // Optionally, show a toast or feedback here for success
   } catch (err) {
-    console.error('Failed to copy markdown:', err)
-    // Fallback for older browsers
+    // Clipboard API failed, fallback to textarea method
     try {
       const textArea = document.createElement('textarea')
       textArea.value = props.markdownContent || ''
@@ -176,19 +204,22 @@ const copyMarkdown = async () => {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      // Successfully copied via fallback method
+      // Optionally, show a toast or feedback here for success
     } catch (fallbackErr) {
+      // Both methods failed, log error for debugging
       console.error('Failed to copy markdown with fallback:', fallbackErr)
     }
   }
 }
 
-// Download functions
+/**
+ * Download the markdown content as a .md file.
+ * Uses Blob and a temporary anchor to trigger the download.
+ */
 const downloadMarkdown = () => {
   const content = props.markdownContent || '# Empty Document'
   const blob = new Blob([content], { type: EXPORT_CONFIG.MARKDOWN_MIME_TYPE })
   const url = URL.createObjectURL(blob)
-  
   const a = document.createElement('a')
   a.href = url
   a.download = `markdown-export-${new Date().toISOString().split('T')[0]}${EXPORT_CONFIG.MARKDOWN_EXTENSION}`
@@ -198,11 +229,13 @@ const downloadMarkdown = () => {
   URL.revokeObjectURL(url)
 }
 
+/**
+ * Download the markdown content as a .txt file.
+ */
 const downloadAsText = () => {
   const content = props.markdownContent || 'Empty Document'
   const blob = new Blob([content], { type: EXPORT_CONFIG.TEXT_MIME_TYPE })
   const url = URL.createObjectURL(blob)
-  
   const a = document.createElement('a')
   a.href = url
   a.download = `text-export-${new Date().toISOString().split('T')[0]}${EXPORT_CONFIG.TEXT_EXTENSION}`
@@ -212,61 +245,62 @@ const downloadAsText = () => {
   URL.revokeObjectURL(url)
 }
 
+/**
+ * Download the rendered HTML as a .html file.
+ * Uses a composable for HTML export logic.
+ */
+const downloadAsHtml = (type: 'simple' | 'simple-no-toc' | 'advanced') => {
+  const { exportAsHtml } = useHtmlExport()
+  const colorMode = useColorMode()
+  exportAsHtml(
+    props.renderedHtml || '<p>Empty document</p>',
+    props.tocHeadings || [],
+    { type, colorMode: colorMode.value as 'light' | 'dark' }
+  )
+}
+
+/**
+ * Copy the markdown content to the clipboard.
+ * This is a wrapper for copyMarkdown for menu compatibility.
+ */
 const copyToClipboard = () => {
   copyMarkdown()
 }
 
-const printMarkdown = () => {
-  const printWindow = window.open('', '_blank')
-  if (printWindow) {
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Markdown Preview - Print</title>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; line-height: 1.6; max-width: 800px; margin: 0 auto; padding: 2rem; }
-            pre { background: #f5f5f5; padding: 1rem; border-radius: 4px; overflow-x: auto; }
-            code { background: #f5f5f5; padding: 0.2rem 0.4rem; border-radius: 3px; }
-            blockquote { border-left: 4px solid #ddd; margin: 0; padding-left: 1rem; color: #666; }
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #ddd; padding: 0.5rem; text-align: left; }
-            th { background: #f5f5f5; }
-          </style>
-        </head>
-        <body>
-          <pre>${props.markdownContent || 'Empty Document'}</pre>
-        </body>
-      </html>
-    `)
-    printWindow.document.close()
-    printWindow.print()
-  }
-}
-
+/**
+ * Clear the markdown content and emit events for parent handling.
+ */
 const clearContent = () => {
   emit('update:markdownContent', '')
   emit('clearContent')
 }
 
+/**
+ * Load the sample markdown content and emit events for parent handling.
+ */
 const loadSample = () => {
   emit('update:markdownContent', SAMPLE_MARKDOWN)
   emit('loadSample')
 }
 
+/**
+ * Reset the editor panels to their default split.
+ */
 const resetPanels = () => {
   emit('resetPanels')
 }
 
+/**
+ * Toggle the Table of Contents panel.
+ */
 const toggleToc = () => {
   emit('toggleToc')
 }
 
-// Auto-load sample content on mount if no content exists
+// On mount, load sample content if none exists
 onMounted(() => {
   if (!props.markdownContent) {
-    nextTick(() => {
-      loadSample()
-    })
+    loadSample()
   }
 })
 </script>

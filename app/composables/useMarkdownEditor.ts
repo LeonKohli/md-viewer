@@ -98,12 +98,10 @@ export function useMarkdownEditor() {
   useEventListener(textareaElement, 'keyup', handleTextareaInteraction)
   
   // Initialize content
-  onMounted(() => {
-    if (globalMarkdownContent.value) {
-      markdownInput.value = globalMarkdownContent.value
-      parseMarkdown()
-    }
-  })
+  if (globalMarkdownContent.value) {
+    markdownInput.value = globalMarkdownContent.value
+    parseMarkdown()
+  }
   
   return {
     // State

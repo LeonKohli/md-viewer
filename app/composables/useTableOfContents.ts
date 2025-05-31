@@ -1,4 +1,4 @@
-import { computed, ref, type Ref } from 'vue'
+import type { Ref } from 'vue'
 
 export interface TocItem {
   id: string

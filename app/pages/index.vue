@@ -213,9 +213,8 @@
 </template>
 
 <script setup lang="ts">
-import { useDebounceFn } from '@vueuse/core'
 import TableOfContents from '~/components/TableOfContents.vue'
-import { useTableOfContents } from '~/composables/useTableOfContents'
+import type { TocItem } from '~/composables/useTableOfContents'
 
 // Composables
 const { markdownInput, renderedHtml, textareaRef, wordWrap, showPreview, cursorPosition, stats, onInputChange, toggleWordWrap, togglePreview } = useMarkdownEditor()
@@ -288,6 +287,8 @@ onUnmounted(() => {
 const isFullscreen = useState('isFullscreen', () => false)
 const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
 const showToc = useState('showToc', () => false)
+const globalRenderedHtml = useState<string>('renderedHtml', () => '')
+const globalTocHeadings = useState<TocItem[]>('tocHeadings', () => [])
 
 // Local state
 const isFocusMode = ref(false)
@@ -328,7 +329,14 @@ watch(renderedHtml, () => {
   nextTick(() => {
     updateActiveHeadingDebounced()
   })
+  // Update global rendered HTML
+  globalRenderedHtml.value = renderedHtml.value
 })
+
+// Update global TOC headings when they change
+watch(tocHeadings, () => {
+  globalTocHeadings.value = tocHeadings.value
+}, { deep: true })
 
 // SEO configuration
 useSeoMeta({
