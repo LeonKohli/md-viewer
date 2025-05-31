@@ -323,11 +323,18 @@ watchEffect(() => {
   }
 })
 
+// Get mermaid render function from plugin
+const { $renderMermaid } = useNuxtApp()
+
 // Update active heading when content changes
 watch(renderedHtml, () => {
   // Update active heading after content renders
   nextTick(() => {
     updateActiveHeadingDebounced()
+    // Render Mermaid diagrams if present
+    if ($renderMermaid) {
+      $renderMermaid()
+    }
   })
   // Update global rendered HTML
   globalRenderedHtml.value = renderedHtml.value
@@ -344,10 +351,3 @@ useSeoMeta({
   description: 'A beautiful, modern markdown editor with live preview, syntax highlighting, and professional formatting tools. Built with Nuxt.js and Vue 3.',
 })
 </script>
-
-<style>
-/* Ensure code blocks use our custom dark mode styles */
-.prose pre code.hljs {
-  background: transparent !important;
-}
-</style>

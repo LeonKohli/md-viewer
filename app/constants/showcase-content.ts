@@ -46,6 +46,38 @@ Heading 2 Alternative
 
 ---
 
+## 🎯 Special Features
+
+### Footnotes
+
+Here's a sentence with a footnote[^1].
+
+You can also use inline footnotes^[This is an inline footnote].
+
+[^1]: This is the footnote content that appears at the bottom of the document.
+
+### Abbreviations
+
+The HTML specification is maintained by the W3C. When you hover over HTML or W3C, you'll see the full definition.
+
+*[HTML]: HyperText Markup Language
+*[W3C]: World Wide Web Consortium
+
+### Definition Lists
+
+Term 1
+: This is the definition of Term 1.
+
+Term 2  
+: This is the definition of Term 2.
+: Terms can have multiple definitions
+
+API
+: Application Programming Interface
+: A way for programs to communicate with each other
+
+---
+
 ## 📊 Diagrams
 
 ### Mermaid Diagrams

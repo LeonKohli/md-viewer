@@ -24,12 +24,14 @@ export function useTableOfContents(content: Ref<string>) {
     while ((match = headingRegex.exec(content.value)) !== null) {
       const level = match[1].length
       const text = match[2].trim()
+      // Match the ID generation from gfmHeadingId
+      // This is a simplified version - gfmHeadingId handles edge cases better
       const id = text
         .toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .trim()
+        .replace(/[^\w\s-]/g, '') // Remove special characters
+        .replace(/\s+/g, '-')     // Replace spaces with hyphens
+        .replace(/-+/g, '-')      // Replace multiple hyphens with single
+        .replace(/^-|-$/g, '')    // Remove leading/trailing hyphens
       
       items.push({ id, text, level, children: [] })
     }

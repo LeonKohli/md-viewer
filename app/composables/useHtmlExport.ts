@@ -38,11 +38,20 @@ ${renderItems(items)}
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Markdown Document</title>
   
-  <!-- Simple syntax highlighting theme -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+  <!-- Syntax highlighting handled via CSS variables in styles below -->
   
   <!-- KaTeX for math -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  
+  <!-- Mermaid for diagrams -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'default',
+      securityLevel: 'loose'
+    });
+  </script>
   
   <style>
     body {
@@ -92,6 +101,18 @@ ${renderItems(items)}
       padding: 0;
       font-size: 0.875em;
     }
+    
+    /* Syntax highlighting colors - GitHub theme */
+    .hljs { color: #24292e; }
+    .hljs-comment, .hljs-quote, .hljs-meta { color: #6a737d; }
+    .hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-title, .hljs-section, .hljs-doctag, .hljs-type, .hljs-name, .hljs-strong { color: #d73a49; }
+    .hljs-string { color: #032f62; }
+    .hljs-number, .hljs-literal { color: #005cc5; }
+    .hljs-built_in, .hljs-title.class_, .hljs-title.function_ { color: #6f42c1; }
+    .hljs-symbol, .hljs-template-variable, .hljs-variable, .hljs-attr, .hljs-attribute, .hljs-property { color: #e36209; }
+    .hljs-selector-id, .hljs-selector-class, .hljs-selector-attr, .hljs-selector-pseudo, .hljs-regexp, .hljs-link { color: #005cc5; }
+    .hljs-addition { color: #22863a; }
+    .hljs-deletion { color: #b31d28; }
     
     /* Code block wrapper for copy button */
     .code-block-wrapper {
@@ -213,6 +234,81 @@ ${renderItems(items)}
       margin-left: 2em;
     }
     
+    /* GitHub-style Alerts */
+    .markdown-alert {
+      padding: 1em;
+      margin: 1em 0;
+      border-radius: 6px;
+      border: 1px solid;
+    }
+    
+    .markdown-alert-title {
+      font-weight: 600;
+      margin-bottom: 0.5em;
+    }
+    
+    .markdown-alert-note {
+      background-color: #f0f9ff;
+      border-color: #0284c7;
+      color: #0c4a6e;
+    }
+    
+    .markdown-alert-tip {
+      background-color: #f0fdf4;
+      border-color: #16a34a;
+      color: #14532d;
+    }
+    
+    .markdown-alert-important {
+      background-color: #faf5ff;
+      border-color: #9333ea;
+      color: #581c87;
+    }
+    
+    .markdown-alert-warning {
+      background-color: #fffbeb;
+      border-color: #f59e0b;
+      color: #78350f;
+    }
+    
+    .markdown-alert-caution {
+      background-color: #fef2f2;
+      border-color: #dc2626;
+      color: #7f1d1d;
+    }
+    
+    /* Footnotes */
+    .footnotes {
+      margin-top: 3em;
+      padding-top: 2em;
+      border-top: 1px solid #ddd;
+      font-size: 0.875em;
+    }
+    
+    .footnotes ol {
+      padding-left: 1.5em;
+    }
+    
+    .footnotes li {
+      margin-bottom: 0.5em;
+    }
+    
+    /* Extended tables */
+    table {
+      margin: 1em 0;
+    }
+    
+    /* Simple mermaid styles */
+    .mermaid {
+      margin: 1.5em 0;
+      text-align: center;
+    }
+    
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
+    }
+    
     /* Print styles */
     @media print {
       body {
@@ -298,12 +394,21 @@ ${renderItems(items)}
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Markdown Export</title>
   
-  <!-- Highlight.js CSS -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" media="(prefers-color-scheme: light)">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" media="(prefers-color-scheme: dark)">
+  <!-- Syntax highlighting handled via CSS variables in styles below -->
   
   <!-- KaTeX CSS -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+  
+  <!-- Mermaid for diagrams -->
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
+    const isDark = document.documentElement.classList.contains('dark');
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: isDark ? 'dark' : 'default',
+      securityLevel: 'loose'
+    });
+  </script>
   
   <style>
     * {
@@ -321,6 +426,19 @@ ${renderItems(items)}
       --code-bg: #f6f8fa;
       --toc-bg: #ffffff;
       --toc-hover: #f3f4f6;
+      
+      /* Syntax highlighting - Light mode */
+      --hl-base: #24292e;
+      --hl-comment: #6a737d;
+      --hl-keyword: #d73a49;
+      --hl-string: #032f62;
+      --hl-number: #005cc5;
+      --hl-function: #6f42c1;
+      --hl-variable: #e36209;
+      --hl-type: #005cc5;
+      --hl-attribute: #d73a49;
+      --hl-addition: #22863a;
+      --hl-deletion: #b31d28;
     }
     
     :root.dark {
@@ -332,6 +450,19 @@ ${renderItems(items)}
       --code-bg: #1a1a1a;
       --toc-bg: #0f0f0f;
       --toc-hover: #262626;
+      
+      /* Syntax highlighting - Dark mode */
+      --hl-base: #c9d1d9;
+      --hl-comment: #8b949e;
+      --hl-keyword: #ff7b72;
+      --hl-string: #a5d6ff;
+      --hl-number: #79c0ff;
+      --hl-function: #d2a8ff;
+      --hl-variable: #ffa657;
+      --hl-type: #79c0ff;
+      --hl-attribute: #ff7b72;
+      --hl-addition: #aff5b4;
+      --hl-deletion: #ffdcd7;
     }
     
     body {
@@ -456,6 +587,21 @@ ${renderItems(items)}
       padding: 0;
     }
     
+    /* Syntax highlighting with CSS variables */
+    .hljs { 
+      background: transparent !important;
+      color: var(--hl-base);
+    }
+    .hljs-comment, .hljs-quote, .hljs-meta { color: var(--hl-comment); }
+    .hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-title, .hljs-section, .hljs-doctag, .hljs-type, .hljs-name, .hljs-strong { color: var(--hl-keyword); }
+    .hljs-string { color: var(--hl-string); }
+    .hljs-number, .hljs-literal { color: var(--hl-number); }
+    .hljs-built_in, .hljs-title.class_, .hljs-title.function_ { color: var(--hl-function); }
+    .hljs-symbol, .hljs-template-variable, .hljs-variable, .hljs-attr, .hljs-attribute, .hljs-property { color: var(--hl-variable); }
+    .hljs-selector-id, .hljs-selector-class, .hljs-selector-attr, .hljs-selector-pseudo, .hljs-regexp, .hljs-link { color: var(--hl-type); }
+    .hljs-addition { color: var(--hl-addition); }
+    .hljs-deletion { color: var(--hl-deletion); }
+    
     /* Code block wrapper */
     .code-block-wrapper {
       position: relative;
@@ -536,6 +682,17 @@ ${renderItems(items)}
     .katex-display {
       margin: 1rem 0;
       overflow-x: auto;
+    }
+    
+    /* Mermaid diagrams */
+    .mermaid {
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+    
+    .mermaid svg {
+      max-width: 100%;
+      height: auto;
     }
     
     /* Mobile */

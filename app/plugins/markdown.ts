@@ -1,6 +1,12 @@
 import { Marked } from 'marked'
 import { markedHighlight } from 'marked-highlight'
 import markedKatex from 'marked-katex-extension'
+import { gfmHeadingId } from 'marked-gfm-heading-id'
+import markedFootnote from 'marked-footnote'
+import markedAlert from 'marked-alert'
+import { markedSmartypants } from 'marked-smartypants'
+import markedExtendedTables from 'marked-extended-tables'
+import { markedMermaid } from '~/utils/markedMermaid'
 import hljs from 'highlight.js/lib/core'
 
 // Register specific languages for better performance
@@ -34,10 +40,29 @@ hljs.registerLanguage('py', python)
 
 const marked = new Marked()
 
-// Add extensions
+// Configure marked with extensions
+marked.use(gfmHeadingId()) // Adds IDs to headings
+marked.use(markedAlert()) // GitHub-style alerts
+marked.use(markedSmartypants()) // Smart typography
+marked.use(markedExtendedTables()) // Extended table support
+marked.use(markedMermaid) // Mermaid diagram support
+marked.use(markedFootnote({
+  prefixId: 'footnote-',
+  description: 'Footnotes',
+  refMarkers: false
+})) // Adds footnote support
+marked.use(markedKatex({
+  throwOnError: false,
+  output: 'html'
+})) // Adds math support
 marked.use(markedHighlight({
   langPrefix: 'hljs language-',
   highlight(code, lang) {
+    // Skip mermaid blocks - they're handled by markedMermaid
+    if (lang === 'mermaid') {
+      return code
+    }
+    
     // Check if language is registered
     if (lang && hljs.getLanguage(lang)) {
       try {
@@ -55,69 +80,21 @@ marked.use(markedHighlight({
       return code // Return plain text as fallback
     }
   }
-}))
-
-marked.use(markedKatex({
-  throwOnError: false,
-  output: 'html'
-}))
+})) // Adds code highlighting
 
 // Configure marked options
 marked.setOptions({
-  breaks: true,
-  gfm: true,
+  breaks: true, // Enable GFM line breaks (newlines as <br>)
+  gfm: true,    // GitHub Flavored Markdown (enabled by default, but being explicit)
 })
-
-// Function to add IDs to headings for TOC navigation
-function addHeadingIds(html: string): string {
-  return html.replace(/<h([1-6])>(.*?)<\/h\1>/gi, (match, level, text) => {
-    // Create a URL-safe ID from the heading text
-    const id = text
-      .toLowerCase()
-      .replace(/<[^>]*>/g, '') // Remove any HTML tags
-      .replace(/[^\w\s-]/g, '') // Remove special characters
-      .replace(/\s+/g, '-') // Replace spaces with hyphens
-      .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
-      .trim()
-    
-    return `<h${level} id="${id}">${text}</h${level}>`
-  })
-}
 
 // Function to add copy buttons to code blocks
 function addCopyButtons(html: string): string {
-  // Replace pre>code blocks with wrapped versions
   return html.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (match, attrs, code) => {
     const id = `code-${Math.random().toString(36).substr(2, 9)}`
-    
-    // Extract the plain text for copying (remove HTML tags)
-    const plainCode = code.replace(/<[^>]*>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&')
-    
-    return `<div class="code-block-wrapper relative group">
+    return `<div class="code-block-wrapper">
       <pre><code${attrs} id="${id}">${code}</code></pre>
-      <button 
-        class="code-copy-btn absolute top-2 right-2 px-2 py-1 text-xs rounded bg-muted/80 hover:bg-muted text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center gap-1"
-        onclick="
-          const codeEl = document.getElementById('${id}');
-          const code = codeEl.textContent || codeEl.innerText;
-          const button = this;
-          const originalContent = button.innerHTML;
-          navigator.clipboard.writeText(code).then(() => {
-            button.innerHTML = '<svg class=\\'w-3 h-3\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M5 13l4 4L19 7\\'></path></svg> Copied!';
-            setTimeout(() => { button.innerHTML = originalContent; }, 2000);
-          }).catch(err => {
-            console.error('Failed to copy:', err);
-            button.innerHTML = '<svg class=\\'w-3 h-3\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M6 18L18 6M6 6l12 12\\'></path></svg> Failed';
-            setTimeout(() => { button.innerHTML = originalContent; }, 2000);
-          });
-        "
-      >
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <rect x="9" y="9" width="13" height="13" rx="2" stroke-width="2"></rect>
-          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" stroke-width="2"></path>
-        </svg>
-        Copy
-      </button>
+      <button class="code-copy-btn" data-target="${id}">Copy</button>
     </div>`
   })
 }
@@ -127,7 +104,6 @@ export default defineNuxtPlugin(() => {
     provide: {
       md: (raw: string) => {
         let html = marked.parse(raw) as string
-        html = addHeadingIds(html)
         html = addCopyButtons(html)
         return html
       }
