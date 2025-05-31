@@ -16,14 +16,9 @@ export default defineNuxtConfig({
   },
   // Basic SEO site configuration
   site: {
-    url: 'https://example.com',
     name: 'Markdown Editor',
     description: 'A powerful online markdown editor with live preview, syntax highlighting, table of contents, and export capabilities',
     defaultLocale: 'en',
-  },
-  // Simple SEO settings
-  seo: {
-    redirectToCanonicalSiteUrl: true,
   },
   css: [
     '~/assets/css/main.css',
