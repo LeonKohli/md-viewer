@@ -38,4 +38,8 @@ export interface MarkdownNavbarEmits {
   (e: 'toggleToc'): void
 }
 
- 
+// Export options
+export interface ExportOptions {
+  type: 'simple' | 'simple-no-toc' | 'advanced'
+  colorMode?: 'light' | 'dark'
+}

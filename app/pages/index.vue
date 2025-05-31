@@ -213,8 +213,17 @@
 </template>
 
 <script setup lang="ts">
-import TableOfContents from '~/components/TableOfContents.vue'
 import type { TocItem } from '~/composables/useTableOfContents'
+
+// SEO Meta
+useSeoMeta({
+  title: 'Markdown Editor - Live Preview & Export',
+  description: 'A powerful online markdown editor with live preview, syntax highlighting, table of contents, and export capabilities. Supports GitHub Flavored Markdown, KaTeX math, and Mermaid diagrams.',
+  ogTitle: 'Markdown Editor - Live Preview & Export',
+  ogDescription: 'Write markdown with live preview, syntax highlighting, and advanced features.',
+  twitterTitle: 'Markdown Editor - Live Preview & Export',
+  twitterDescription: 'Write markdown with live preview, syntax highlighting, and advanced features.',
+})
 
 // Composables
 const { markdownInput, renderedHtml, textareaRef, wordWrap, showPreview, cursorPosition, stats, onInputChange, toggleWordWrap, togglePreview } = useMarkdownEditor()
@@ -241,13 +250,14 @@ const {
   activeHeadingId, 
   updateActiveHeading,
   setActiveHeading
-} = useTableOfContents(markdownInput)
+} = useTableOfContents(markdownInput, renderedHtml)
 
-// Navigate to heading using scroll sync
-const navigateToHeading = (id: string) => {
+// Navigate to heading
+const navigateToHeading = async (id: string) => {
+  await nextTick()
+  
   const element = document.getElementById(id)
   if (element) {
-    // Immediately set this as the active heading
     setActiveHeading(id)
     scrollToElement(element)
   }
@@ -344,10 +354,4 @@ watch(renderedHtml, () => {
 watch(tocHeadings, () => {
   globalTocHeadings.value = tocHeadings.value
 }, { deep: true })
-
-// SEO configuration
-useSeoMeta({
-  title: 'Markdown Preview - Live Editor',
-  description: 'A beautiful, modern markdown editor with live preview, syntax highlighting, and professional formatting tools. Built with Nuxt.js and Vue 3.',
-})
 </script>

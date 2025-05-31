@@ -5,9 +5,9 @@
       class="toc-button w-full text-left flex items-center py-1.5 px-3 rounded-md transition-all duration-150 hover:bg-muted/50"
       :class="{
         'bg-primary/10 text-primary font-medium': isActive,
-        'text-muted-foreground hover:text-foreground': !isActive,
-        [`pl-${3 + (item.level - 1) * 4}`]: true
+        'text-muted-foreground hover:text-foreground': !isActive
       }"
+      :style="{ paddingLeft: `${0.75 + (item.level - 1)}rem` }"
     >
       <span class="text-sm truncate">{{ item.text }}</span>
     </button>
@@ -40,12 +40,3 @@ const emit = defineEmits<{
 const isActive = computed(() => props.item.id === props.activeId)
 </script>
 
-<style scoped>
-/* Dynamic padding based on heading level */
-.pl-3 { padding-left: 0.75rem; }
-.pl-7 { padding-left: 1.75rem; }
-.pl-11 { padding-left: 2.75rem; }
-.pl-15 { padding-left: 3.75rem; }
-.pl-19 { padding-left: 4.75rem; }
-.pl-23 { padding-left: 5.75rem; }
-</style>

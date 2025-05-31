@@ -1,8 +1,8 @@
 {
-  "name": "nuxt-shadcn-boilerplate",
+  "name": "markdown-editor",
   "private": true,
   "type": "module",
-  "description": "A modern Nuxt 3 boilerplate with shadcn-vue, Tailwind CSS, VueUse, color mode, and SEO",
+  "description": "A powerful online markdown editor with live preview, syntax highlighting, table of contents, and export capabilities",
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",

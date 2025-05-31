@@ -7,7 +7,7 @@ export interface TocItem {
   children: TocItem[]
 }
 
-export function useTableOfContents(content: Ref<string>) {
+export function useTableOfContents(content: Ref<string>, renderedHtml?: Ref<string>) {
   const activeHeadingId = ref<string>('')
   
   // Allow external setting of active heading
@@ -15,25 +15,43 @@ export function useTableOfContents(content: Ref<string>) {
     activeHeadingId.value = id
   }
   
-  // Extract headings from markdown content
+  // Extract headings from rendered HTML for accurate IDs
   const headings = computed(() => {
-    const headingRegex = /^(#{1,6})\s+(.+)$/gm
     const items: TocItem[] = []
-    let match
     
-    while ((match = headingRegex.exec(content.value)) !== null) {
-      const level = match[1].length
-      const text = match[2].trim()
-      // Match the ID generation from gfmHeadingId
-      // This is a simplified version - gfmHeadingId handles edge cases better
-      const id = text
-        .toLowerCase()
-        .replace(/[^\w\s-]/g, '') // Remove special characters
-        .replace(/\s+/g, '-')     // Replace spaces with hyphens
-        .replace(/-+/g, '-')      // Replace multiple hyphens with single
-        .replace(/^-|-$/g, '')    // Remove leading/trailing hyphens
+    // If we have rendered HTML, extract from that for accurate IDs
+    if (renderedHtml?.value) {
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(renderedHtml.value, 'text/html')
+      const headingElements = doc.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]')
       
-      items.push({ id, text, level, children: [] })
+      headingElements.forEach(heading => {
+        const level = parseInt(heading.tagName.charAt(1))
+        const text = heading.textContent || ''
+        const id = heading.id
+        
+        if (id && text) {
+          items.push({ id, text, level, children: [] })
+        }
+      })
+    } else {
+      // Fallback to extracting from markdown
+      const headingRegex = /^(#{1,6})\s+(.+)$/gm
+      let match
+      
+      while ((match = headingRegex.exec(content.value)) !== null) {
+        const level = match[1]?.length ?? 1
+        const text = match[2]?.trim() ?? ''
+        // This is a simplified ID generation - may not match gfmHeadingId exactly
+        const id = text
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '') // Remove special characters
+          .replace(/\s+/g, '-')     // Replace spaces with hyphens
+          .replace(/-+/g, '-')      // Replace multiple hyphens with single
+          .replace(/^-|-$/g, '')    // Remove leading/trailing hyphens
+        
+        items.push({ id, text, level, children: [] })
+      }
     }
     
     return buildHierarchy(items)
@@ -45,14 +63,14 @@ export function useTableOfContents(content: Ref<string>) {
     const stack: TocItem[] = []
     
     items.forEach(item => {
-      while (stack.length > 0 && stack[stack.length - 1].level >= item.level) {
+      while (stack.length > 0 && stack[stack.length - 1]!.level >= item.level) {
         stack.pop()
       }
       
       if (stack.length === 0) {
         root.push(item)
       } else {
-        stack[stack.length - 1].children.push(item)
+        stack[stack.length - 1]!.children.push(item)
       }
       
       stack.push(item)
@@ -63,11 +81,11 @@ export function useTableOfContents(content: Ref<string>) {
   
   // Function to update active heading (will be called from parent)
   const updateActiveHeading = (container: HTMLElement) => {
-    const headings = container.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]')
+    const headings = container.querySelectorAll<HTMLHeadingElement>('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]')
     const containerRect = container.getBoundingClientRect()
     
     // Find the heading that's most visible in the viewport
-    let mostVisibleHeading: Element | null = null
+    let mostVisibleId = ''
     let maxVisibility = 0
     
     headings.forEach(heading => {
@@ -86,15 +104,15 @@ export function useTableOfContents(content: Ref<string>) {
         const distanceFromTop = Math.max(0, relativeTop)
         const visibility = visibleHeight / (1 + distanceFromTop * 0.01)
         
-        if (visibility > maxVisibility) {
+        if (visibility > maxVisibility && heading.id) {
           maxVisibility = visibility
-          mostVisibleHeading = heading
+          mostVisibleId = heading.id
         }
       }
     })
     
-    if (mostVisibleHeading && mostVisibleHeading.id) {
-      activeHeadingId.value = mostVisibleHeading.id
+    if (mostVisibleId) {
+      activeHeadingId.value = mostVisibleId
     }
   }
   

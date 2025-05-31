@@ -12,7 +12,7 @@ export const markedMermaid: MarkedExtension = {
     },
     tokenizer(src: string) {
       const match = src.match(/^```mermaid\n([\s\S]*?)```/)
-      if (match) {
+      if (match && match[1]) {
         return {
           type: 'mermaid',
           raw: match[0],

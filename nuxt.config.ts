@@ -17,8 +17,8 @@ export default defineNuxtConfig({
   // Basic SEO site configuration
   site: {
     url: 'https://example.com',
-    name: 'Nuxt Shadcn Boilerplate',
-    description: 'A modern Nuxt 4 boilerplate with shadcn-vue, Tailwind CSS, VueUse, color mode, and SEO',
+    name: 'Markdown Editor',
+    description: 'A powerful online markdown editor with live preview, syntax highlighting, table of contents, and export capabilities',
     defaultLocale: 'en',
   },
   // Simple SEO settings

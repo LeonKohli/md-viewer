@@ -1,4 +1,5 @@
 import type { TocItem } from './useTableOfContents'
+import type { ExportOptions } from '~/types'
 
 export function useHtmlExport() {
   
@@ -781,7 +782,7 @@ ${renderItems(items)}
   const exportAsHtml = (
     renderedHtml: string,
     tocItems: TocItem[],
-    options: { type: 'simple' | 'simple-no-toc' | 'advanced', colorMode?: 'light' | 'dark' }
+    options: ExportOptions
   ) => {
     let html = ''
     const filename = `markdown-${new Date().toISOString().split('T')[0]}.html`
