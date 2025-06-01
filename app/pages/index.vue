@@ -306,10 +306,12 @@ const updateActiveHeadingDebounced = useDebounceFn(() => {
 // Set up scroll listener when preview element is ready
 let scrollListener: (() => void) | null = null
 
-watch(previewContainerRef, (newContainer, oldContainer) => {
+// Use watchEffect for automatic cleanup
+const stopWatchingScroll = watch(previewContainerRef, (newContainer, oldContainer) => {
   // Remove old listener
   if (oldContainer && scrollListener) {
     oldContainer.removeEventListener('scroll', scrollListener)
+    scrollListener = null
   }
   
   // Add new listener
@@ -317,12 +319,17 @@ watch(previewContainerRef, (newContainer, oldContainer) => {
     scrollListener = () => updateActiveHeadingDebounced()
     newContainer.addEventListener('scroll', scrollListener, { passive: true })
   }
-})
+}, { immediate: true })
 
-// Clean up on unmount
+// Clean up everything on unmount
 onUnmounted(() => {
+  // Stop the watcher
+  stopWatchingScroll()
+  
+  // Remove scroll listener if it exists
   if (previewContainerRef.value && scrollListener) {
     previewContainerRef.value.removeEventListener('scroll', scrollListener)
+    scrollListener = null
   }
 })
 
@@ -388,20 +395,22 @@ watch(tocHeadings, () => {
   globalTocHeadings.value = tocHeadings.value
 }, { deep: true })
 
-// Keyboard shortcuts
-onMounted(() => {
-  const handleKeydown = (e: KeyboardEvent) => {
-    // Clear editor: Ctrl/Cmd + Shift + K
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
-      e.preventDefault()
-      clearEditor()
-    }
+// Keyboard shortcuts - define handler outside to ensure proper cleanup
+const handleKeydown = (e: KeyboardEvent) => {
+  // Clear editor: Ctrl/Cmd + Shift + K
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
+    e.preventDefault()
+    clearEditor()
   }
-  
+}
+
+// Set up keyboard listeners
+onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
-  
-  onUnmounted(() => {
-    window.removeEventListener('keydown', handleKeydown)
-  })
+})
+
+// Clean up keyboard listener
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
 })
 </script>
