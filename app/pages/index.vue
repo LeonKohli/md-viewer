@@ -268,13 +268,16 @@
           </span>
         </span>
         <span>•</span>
-        <span>{{ stats.words }} words</span>
+        <span>{{ stats.words }} {{ stats.words === 1 ? 'word' : 'words' }}</span>
       </div>
       <div class="flex items-center gap-4">
-        <span>Markdown</span>
-        <span>•</span>
-        <span>UTF-8</span>
-        <span>•</span>
+        <span v-if="markdownInput.length > 0" class="flex items-center gap-1">
+          <Icon name="lucide:file-text" class="h-3 w-3" />
+          <span>{{ formatFileSize(markdownInput.length) }}</span>
+        </span>
+        <span v-if="markdownInput.length > 0">•</span>
+        <span v-if="stats.lines > 0">{{ stats.lines }} {{ stats.lines === 1 ? 'line' : 'lines' }}</span>
+        <span v-if="stats.lines > 0">•</span>
         <span>Ln {{ cursorPosition.line }}, Col {{ cursorPosition.column }}</span>
       </div>
     </div>
@@ -535,4 +538,11 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
+
+// Format file size for status bar
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
+}
 </script>
