@@ -1,94 +1,143 @@
-import { Marked } from 'marked'
-import { markedHighlight } from 'marked-highlight'
-import markedKatex from 'marked-katex-extension'
-import { gfmHeadingId } from 'marked-gfm-heading-id'
-import markedFootnote from 'marked-footnote'
-import markedAlert from 'marked-alert'
-import { markedSmartypants } from 'marked-smartypants'
-import markedExtendedTables from 'marked-extended-tables'
-import { markedMermaid } from '~/utils/markedMermaid'
-import hljs from 'highlight.js/lib/core'
+import MarkdownIt from 'markdown-it'
+import type { Options as MarkdownItOptions } from 'markdown-it'
 
-// Register specific languages for better performance
-import typescript from 'highlight.js/lib/languages/typescript'
+// Core formatting plugins
+import markdownItSub from 'markdown-it-sub'
+import markdownItSup from 'markdown-it-sup'
+import markdownItIns from 'markdown-it-ins'
+import markdownItMark from 'markdown-it-mark'
+import markdownItAbbr from 'markdown-it-abbr'
+import markdownItDeflist from 'markdown-it-deflist'
+
+// Enhanced features
+import markdownItAttrs from 'markdown-it-attrs'
+import markdownItTaskLists from 'markdown-it-task-lists'
+import markdownItTableOfContents from 'markdown-it-table-of-contents'
+
+// Content and structure
+import markdownItAnchor from 'markdown-it-anchor'
+import markdownItMultimdTable from 'markdown-it-multimd-table'
+import markdownItHighlightjs from 'markdown-it-highlightjs'
+
+// Advanced plugins
+import { footnote } from '@mdit/plugin-footnote'
+import { katex } from '@mdit/plugin-katex'
+
+// Import highlight.js with specific languages
+import hljs from 'highlight.js/lib/core'
 import javascript from 'highlight.js/lib/languages/javascript'
+import typescript from 'highlight.js/lib/languages/typescript'
+import python from 'highlight.js/lib/languages/python'
 import bash from 'highlight.js/lib/languages/bash'
 import json from 'highlight.js/lib/languages/json'
+import yaml from 'highlight.js/lib/languages/yaml'
 import css from 'highlight.js/lib/languages/css'
-import html from 'highlight.js/lib/languages/xml'
+import xml from 'highlight.js/lib/languages/xml'
 import markdown from 'highlight.js/lib/languages/markdown'
-import python from 'highlight.js/lib/languages/python'
-import vue from 'highlight.js/lib/languages/xml' // Vue uses XML highlighting
+import dockerfile from 'highlight.js/lib/languages/dockerfile'
 
 // Register languages
-hljs.registerLanguage('typescript', typescript)
-hljs.registerLanguage('ts', typescript)
 hljs.registerLanguage('javascript', javascript)
-hljs.registerLanguage('js', javascript)
-hljs.registerLanguage('bash', bash)
-hljs.registerLanguage('shell', bash)
-hljs.registerLanguage('sh', bash)
-hljs.registerLanguage('json', json)
-hljs.registerLanguage('css', css)
-hljs.registerLanguage('html', html)
-hljs.registerLanguage('xml', html)
-hljs.registerLanguage('vue', vue)
-hljs.registerLanguage('markdown', markdown)
-hljs.registerLanguage('md', markdown)
+hljs.registerLanguage('typescript', typescript)
 hljs.registerLanguage('python', python)
-hljs.registerLanguage('py', python)
+hljs.registerLanguage('bash', bash)
+hljs.registerLanguage('json', json)
+hljs.registerLanguage('yaml', yaml)
+hljs.registerLanguage('css', css)
+hljs.registerLanguage('xml', xml)
+hljs.registerLanguage('markdown', markdown)
+hljs.registerLanguage('dockerfile', dockerfile)
 
-const marked = new Marked()
+// Register aliases
+hljs.registerAliases(['js'], { languageName: 'javascript' })
+hljs.registerAliases(['ts'], { languageName: 'typescript' })
+hljs.registerAliases(['py'], { languageName: 'python' })
+hljs.registerAliases(['sh', 'shell'], { languageName: 'bash' })
+hljs.registerAliases(['yml'], { languageName: 'yaml' })
+hljs.registerAliases(['html', 'xhtml'], { languageName: 'xml' })
+hljs.registerAliases(['md'], { languageName: 'markdown' })
+hljs.registerAliases(['docker'], { languageName: 'dockerfile' })
 
-// Configure marked with extensions
-marked.use(gfmHeadingId()) // Adds IDs to headings
-marked.use(markedAlert()) // GitHub-style alerts
-marked.use(markedSmartypants()) // Smart typography
-marked.use(markedExtendedTables()) // Extended table support
-marked.use(markedMermaid) // Mermaid diagram support
-marked.use(markedFootnote({
-  prefixId: 'footnote-',
-  description: 'Footnotes',
-  refMarkers: false
-})) // Adds footnote support
-marked.use(markedKatex({
-  throwOnError: false,
-  output: 'html'
-})) // Adds math support
-marked.use(markedHighlight({
+// Initialize markdown-it with options
+const md = new MarkdownIt({
+  html: true,
+  breaks: true,
+  linkify: true,
+  typographer: true,
   langPrefix: 'hljs language-',
-  highlight(code, lang) {
-    // Skip mermaid blocks - they're handled by markedMermaid
-    if (lang === 'mermaid') {
-      return code
-    }
-    
-    // Check if language is registered
-    if (lang && hljs.getLanguage(lang)) {
-      try {
-        return hljs.highlight(code, { language: lang }).value
-      } catch (err) {
-        console.warn('Syntax highlighting failed for language:', lang, err)
-      }
-    }
-    
-    // Fallback to auto-detection
-    try {
-      return hljs.highlightAuto(code).value
-    } catch (err) {
-      console.warn('Auto syntax highlighting failed:', err)
-      return code // Return plain text as fallback
-    }
-  }
-})) // Adds code highlighting
+} as MarkdownItOptions)
 
-// Configure marked options
-marked.setOptions({
-  breaks: true, // Enable GFM line breaks (newlines as <br>)
-  gfm: true,    // GitHub Flavored Markdown (enabled by default, but being explicit)
+// Apply plugins in logical order
+// 1. Structure and anchors
+md.use(markdownItAnchor, {
+  permalink: false, // No visible permalinks, just add IDs
+  level: [1, 2, 3, 4, 5, 6]
 })
 
-// Function to add copy buttons to code blocks
+// 2. Text formatting
+md.use(markdownItSub)
+md.use(markdownItSup)
+md.use(markdownItIns)
+md.use(markdownItMark)
+md.use(markdownItAbbr)
+md.use(markdownItDeflist)
+
+// 3. Task lists
+md.use(markdownItTaskLists, {
+  enabled: true,
+  labelAfter: true
+})
+
+// 4. Attributes
+md.use(markdownItAttrs)
+
+// 5. Table of contents
+md.use(markdownItTableOfContents, {
+  includeLevel: [1, 2, 3, 4],
+  containerClass: 'table-of-contents',
+  markerPattern: /^\[\[toc\]\]/im,
+  listType: 'ul',
+  containerHeaderHtml: '<div class="toc-header">Table of Contents</div>'
+})
+
+// 6. Footnotes
+md.use(footnote, {
+  prefixId: 'footnote-'
+})
+
+// 7. Math with KaTeX
+md.use(katex, {
+  throwOnError: false,
+  strict: false
+})
+
+// 8. Syntax highlighting
+md.use(markdownItHighlightjs, {
+  hljs,
+  auto: true,
+  code: true
+})
+
+// 9. Advanced tables
+md.use(markdownItMultimdTable, {
+  multiline: true,
+  rowspan: true,
+  headerless: true
+})
+
+// 10. Mermaid support - custom renderer for fence blocks
+const originalFence = md.renderer.rules.fence!
+md.renderer.rules.fence = function (tokens, idx, options, env, self) {
+  const token = tokens[idx]
+  if (token?.info === 'mermaid') {
+    const content = token.content.trim()
+    const escapedText = content.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    return `<div class="mermaid-container" data-mermaid-src="${escapedText}"><pre class="mermaid">${content}</pre></div>`
+  }
+  return originalFence(tokens, idx, options, env, self)
+}
+
+// Post-processing: Add copy buttons to code blocks
 function addCopyButtons(html: string): string {
   return html.replace(/<pre><code([^>]*)>([\s\S]*?)<\/code><\/pre>/g, (match, attrs, code) => {
     const id = `code-${Math.random().toString(36).substr(2, 9)}`
@@ -99,14 +148,17 @@ function addCopyButtons(html: string): string {
   })
 }
 
+// Export render function for use in other parts of the app
+export function renderMarkdown(raw: string): string {
+  let html = md.render(raw)
+  html = addCopyButtons(html)
+  return html
+}
+
 export default defineNuxtPlugin(() => {
   return {
     provide: {
-      md: (raw: string) => {
-        let html = marked.parse(raw) as string
-        html = addCopyButtons(html)
-        return html
-      }
+      md: renderMarkdown
     }
   }
 })
