@@ -34,11 +34,15 @@ export function useMarkdownEditor() {
   
   // Check for recoverable content on mount
   onMounted(() => {
-    const recoverable = getRecoverableContent()
-    if (recoverable && !globalMarkdownContent.value) {
-      recoverableContent.value = recoverable
-      showRecoveryPrompt.value = true
+    // Only check for recoverable content, don't auto-load
+    if (!globalMarkdownContent.value) {
+      const recoverable = getRecoverableContent()
+      if (recoverable) {
+        recoverableContent.value = recoverable
+        showRecoveryPrompt.value = true
+      }
     }
+    
     setupAutoSave()
   })
   

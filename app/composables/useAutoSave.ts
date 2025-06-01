@@ -8,7 +8,17 @@
  * - Batches rapid changes intelligently
  * - Network-aware with retry logic
  */
-import { watchDebounced, useTimeAgo, useEventListener } from '@vueuse/core'
+import { 
+  watchDebounced, 
+  useTimeAgo, 
+  useEventListener,
+  useThrottleFn,
+  useDocumentVisibility,
+  useWindowFocus,
+  useNetwork,
+  usePageLeave,
+  useIntervalFn
+} from '@vueuse/core'
 
 const STORAGE_KEY = 'markdown-editor-content'
 const STORAGE_META_KEY = 'markdown-editor-meta'
@@ -49,6 +59,12 @@ export const useAutoSave = () => {
   const lastSaveTime = ref<Date | null>(null)
   const savedMetadata = ref<SaveMetadata | null>(null)
   
+  // VueUse utilities
+  const documentVisibility = useDocumentVisibility()
+  const windowFocused = useWindowFocus()
+  const network = useNetwork()
+  const isPageLeaving = usePageLeave()
+  
   // Smart save tracking
   const lastKeystrokeTime = ref<number>(Date.now())
   const unsavedChangeSize = ref<number>(0)
@@ -64,9 +80,16 @@ export const useAutoSave = () => {
   
   // Computed properties
   const hasUnsavedChanges = computed(() => {
-    if (!markdownContent.value || !savedMetadata.value) return false
-    const currentHash = generateHash(markdownContent.value)
-    return currentHash !== savedMetadata.value.hash
+    // If there's content but no saved metadata, we have unsaved changes
+    if (markdownContent.value && !savedMetadata.value) return true
+    // If there's no content, no unsaved changes
+    if (!markdownContent.value) return false
+    // Compare hashes if we have saved metadata
+    if (savedMetadata.value) {
+      const currentHash = generateHash(markdownContent.value)
+      return currentHash !== savedMetadata.value.hash
+    }
+    return false
   })
   
   const lastSaveTimeAgo = computed(() => {
@@ -92,7 +115,7 @@ export const useAutoSave = () => {
   
   // Load saved content and metadata
   const loadSavedContent = (): { content: string | null; metadata: SaveMetadata | null } => {
-    if (!process.client) return { content: null, metadata: null }
+    if (!import.meta.client) return { content: null, metadata: null }
     
     try {
       const content = localStorage.getItem(STORAGE_KEY)
@@ -109,13 +132,21 @@ export const useAutoSave = () => {
       
       return { content, metadata }
     } catch (e) {
+      console.warn('Failed to load saved content:', e)
       return { content: null, metadata: null }
     }
   }
   
   // Core save function with retry logic
   const performSave = async (content: string, isRetry = false): Promise<boolean> => {
-    if (!process.client) return false
+    if (!import.meta.client) return false
+    
+    // Check network status before saving
+    if (!network.isOnline.value) {
+      saveStatus.value = 'error'
+      saveError.value = 'Offline'
+      return false
+    }
     
     saveStatus.value = 'saving'
     saveError.value = null
@@ -130,6 +161,7 @@ export const useAutoSave = () => {
           saveCount: saveStats.value.totalSaves + 1,
         }
         
+        // Save to localStorage
         localStorage.setItem(STORAGE_KEY, content)
         localStorage.setItem(STORAGE_META_KEY, JSON.stringify(metadata))
         
@@ -204,8 +236,8 @@ export const useAutoSave = () => {
     }, delay)
   }
   
-  // Immediate save for critical actions
-  const saveNow = async () => {
+  // Immediate save for critical actions - throttled to prevent spam
+  const saveNow = useThrottleFn(async () => {
     if (saveTimer.value) {
       clearTimeout(saveTimer.value)
     }
@@ -213,7 +245,7 @@ export const useAutoSave = () => {
     if (markdownContent.value && hasUnsavedChanges.value) {
       await performSave(markdownContent.value)
     }
-  }
+  }, 1000) // Throttle to max once per second
   
   // Handle content changes with smart detection
   const handleContentChange = (newContent: string, oldContent: string) => {
@@ -249,7 +281,7 @@ export const useAutoSave = () => {
   
   // Clear saved content and metadata
   const clearSavedContent = () => {
-    if (!process.client) return
+    if (!import.meta.client) return
     
     try {
       localStorage.removeItem(STORAGE_KEY)
@@ -265,21 +297,21 @@ export const useAutoSave = () => {
   
   // Check if there's recoverable content
   const getRecoverableContent = (): { content: string; metadata: SaveMetadata } | null => {
-    if (!process.client) return null
+    if (!import.meta.client) return null
     
     try {
       const saved = loadSavedContent()
       
       // Only suggest recovery if:
       // 1. There's saved content
-      // 2. Current content is empty or significantly different
-      // 3. Saved content is from within last 24 hours
+      // 2. Current editor is empty (most common case)
+      // 3. Saved content is from within last 7 days (more generous)
       if (saved.content && saved.metadata) {
-        const isRecent = Date.now() - saved.metadata.timestamp < 24 * 60 * 60 * 1000
-        const isDifferent = !markdownContent.value || 
-                           (markdownContent.value.length < saved.content.length * 0.5)
+        const isRecent = Date.now() - saved.metadata.timestamp < 7 * 24 * 60 * 60 * 1000 // 7 days
+        const currentIsEmpty = !markdownContent.value || markdownContent.value.trim().length === 0
         
-        if (isRecent && isDifferent) {
+        // Show prompt if we have recent saved content and current editor is empty
+        if (isRecent && currentIsEmpty && saved.content.trim().length > 0) {
           return { content: saved.content, metadata: saved.metadata }
         }
       }
@@ -292,32 +324,48 @@ export const useAutoSave = () => {
   
   // Set up smart auto-save with multiple triggers
   const setupAutoSave = () => {
-    if (!process.client) return
+    if (!import.meta.client) return
     
-    // Track if this is the initial load
-    let isInitialLoad = true
+    // Initialize saved metadata on setup
+    const saved = loadSavedContent()
+    if (saved.metadata) {
+      savedMetadata.value = saved.metadata
+      lastSaveTime.value = new Date(saved.metadata.timestamp)
+    }
     
     // Watch content changes
     watch(markdownContent, (newContent, oldContent) => {
-      // Skip the initial load
-      if (isInitialLoad) {
-        isInitialLoad = false
-        return
-      }
-      
-      if (oldContent !== undefined) {
+      // Only handle changes, not initial undefined -> value
+      if (oldContent !== undefined && newContent !== oldContent) {
         handleContentChange(newContent, oldContent)
       }
     })
     
-    // Save on window blur (user switches tabs/windows)
-    useEventListener(window, 'blur', () => {
-      if (hasUnsavedChanges.value) {
+    // Watch window focus changes
+    watch(windowFocused, (focused) => {
+      if (!focused && hasUnsavedChanges.value) {
+        // Window lost focus - save quickly
         scheduleSave(SAVE_DELAYS.AFTER_BLUR)
       }
     })
     
-    // Save before page unload
+    // Watch document visibility
+    watch(documentVisibility, (visibility) => {
+      if (visibility === 'hidden' && hasUnsavedChanges.value) {
+        // Tab became hidden - save immediately
+        saveNow()
+      }
+    })
+    
+    // Save when page is about to be left
+    watch(isPageLeaving, (leaving) => {
+      if (leaving && hasUnsavedChanges.value) {
+        // Try to save immediately
+        performSave(markdownContent.value)
+      }
+    })
+    
+    // Save before page unload as fallback
     useEventListener(window, 'beforeunload', (e) => {
       if (hasUnsavedChanges.value) {
         // Try to save immediately
@@ -329,19 +377,29 @@ export const useAutoSave = () => {
       }
     })
     
-    // Save on visibility change (tab becomes hidden)
-    useEventListener(document, 'visibilitychange', () => {
-      if (document.hidden && hasUnsavedChanges.value) {
-        scheduleSave(SAVE_DELAYS.AFTER_BLUR)
+    // Watch network status
+    watch(() => network.isOnline.value, (online) => {
+      if (online && hasUnsavedChanges.value && saveStatus.value === 'error') {
+        // Back online - retry save
+        saveNow()
       }
     })
     
-    // Periodic save as fallback (every 30 seconds if there are changes)
-    setInterval(() => {
+    // Periodic save as fallback using VueUse (every 30 seconds if there are changes)
+    const { pause: pausePeriodicSave, resume: resumePeriodicSave } = useIntervalFn(() => {
       if (hasUnsavedChanges.value && saveStatus.value === 'idle') {
         performSave(markdownContent.value)
       }
     }, 30000)
+    
+    // Pause periodic saves when offline
+    watch(() => network.isOnline.value, (online) => {
+      if (online) {
+        resumePeriodicSave()
+      } else {
+        pausePeriodicSave()
+      }
+    })
   }
   
   return {
