@@ -1,5 +1,13 @@
 <template>
   <div class="h-full flex flex-col">
+    <!-- Recovery Prompt -->
+    <RecoveryPrompt
+      :show="showRecoveryPrompt"
+      :content="recoverableContent"
+      @recover="recoverContent"
+      @discard="discardRecovery"
+    />
+    
     <!-- Main Content -->
     <div class="flex flex-1 overflow-hidden relative">
       <!-- Editor Panel -->
@@ -30,9 +38,32 @@
                 @click="clearEditor"
                 class="h-7 px-2 text-xs hover:text-destructive transition-colors"
                 title="Clear editor (Ctrl+Shift+K)"
+                aria-label="Clear editor"
               >
                 <Icon name="lucide:x" class="h-3 w-3" />
               </Button>
+            </Transition>
+            
+            <!-- Undo clear notification -->
+            <Transition
+              enter-active-class="transition-all duration-200"
+              enter-from-class="opacity-0 scale-95"
+              enter-to-class="opacity-100 scale-100"
+              leave-active-class="transition-all duration-200"
+              leave-from-class="opacity-100 scale-100"
+              leave-to-class="opacity-0 scale-95"
+            >
+              <div v-if="showClearUndo" class="flex items-center gap-1 text-xs">
+                <span class="text-muted-foreground">Cleared</span>
+                <Button
+                  variant="link"
+                  size="sm"
+                  @click="undoClear"
+                  class="h-auto p-0 text-xs font-normal underline-offset-2"
+                >
+                  Undo
+                </Button>
+              </div>
             </Transition>
             <TooltipProvider>
             <Tooltip>
@@ -67,6 +98,7 @@
               size="sm" 
               class="lg:hidden p-1"
               @click="togglePreview"
+              :aria-label="showPreview ? 'Switch to editor' : 'Switch to preview'"
             >
               <Icon :name="showPreview ? 'lucide:edit-3' : 'lucide:eye'" class="h-3 w-3" />
             </Button>
@@ -92,13 +124,23 @@
             ]"
             spellcheck="false"
             @input="onInputChange"
+            @paste="handlePaste"
           />
         </div>
 
         <!-- Editor Status -->
         <div class="px-4 py-2 border-t border-border bg-muted/50 text-xs text-muted-foreground flex justify-between flex-shrink-0">
-          <span>{{ stats.characters }} characters</span>
-          <span>{{ stats.lines }} lines</span>
+          <div class="flex items-center gap-3">
+            <span>{{ stats.characters }} characters</span>
+            <span>{{ stats.lines }} lines</span>
+          </div>
+          <SaveStatusIndicator
+            :save-status="saveStatus"
+            :save-error="saveError"
+            :last-save-time-ago="lastSaveTimeAgo?.value || null"
+            :has-unsaved-changes="hasUnsavedChanges"
+            :has-content="markdownInput.length > 0"
+          />
         </div>
       </div>
 
@@ -160,6 +202,7 @@
               size="sm" 
               class="lg:hidden p-1"
               @click="togglePreview"
+              aria-label="Switch to editor"
             >
               <Icon name="lucide:edit-3" class="h-3 w-3" />
             </Button>
@@ -252,7 +295,28 @@ useSeoMeta({
 })
 
 // Composables
-const { markdownInput, renderedHtml, textareaRef, wordWrap, showPreview, cursorPosition, stats, onInputChange, toggleWordWrap, togglePreview } = useMarkdownEditor()
+const { 
+  markdownInput, 
+  renderedHtml, 
+  textareaRef, 
+  wordWrap, 
+  showPreview, 
+  cursorPosition, 
+  stats, 
+  onInputChange, 
+  toggleWordWrap, 
+  togglePreview,
+  // Auto-save
+  saveStatus,
+  saveError,
+  lastSaveTimeAgo,
+  hasUnsavedChanges,
+  showRecoveryPrompt,
+  recoverableContent,
+  saveNow,
+  recoverContent,
+  discardRecovery
+} = useMarkdownEditor()
 
 const { editorWidth, previewWidth, isAtEdge, dragHandleRef, isDragging, resetToCenter } = useResizablePanels()
 
@@ -291,9 +355,42 @@ const navigateToHeading = async (id: string) => {
   }
 }
 
-// Clear editor content
+// Clear editor with undo support
+const clearedContent = ref<string>('')
+const showClearUndo = ref(false)
+let clearUndoTimeout: NodeJS.Timeout | null = null
+
 const clearEditor = () => {
+  // Save current content for undo
+  if (markdownInput.value) {
+    clearedContent.value = markdownInput.value
+    showClearUndo.value = true
+    
+    // Auto-hide undo after 10 seconds
+    if (clearUndoTimeout) clearTimeout(clearUndoTimeout)
+    clearUndoTimeout = setTimeout(() => {
+      showClearUndo.value = false
+      clearedContent.value = ''
+    }, 10000)
+  }
+  
   markdownInput.value = ''
+  // Clear saved content after a delay to prevent recovery prompt
+  setTimeout(() => {
+    if (!markdownInput.value && !showClearUndo.value) {
+      const { clearSavedContent } = useAutoSave()
+      clearSavedContent()
+    }
+  }, 15000) // 15 seconds - longer than undo timeout
+}
+
+const undoClear = () => {
+  if (clearedContent.value) {
+    markdownInput.value = clearedContent.value
+    showClearUndo.value = false
+    clearedContent.value = ''
+    if (clearUndoTimeout) clearTimeout(clearUndoTimeout)
+  }
 }
 
 // Set up active heading detection
@@ -395,12 +492,37 @@ watch(tocHeadings, () => {
   globalTocHeadings.value = tocHeadings.value
 }, { deep: true })
 
+
+// Handle paste event for immediate save
+const handlePaste = () => {
+  // Let Vue update the model first
+  nextTick(() => {
+    // The auto-save composable will detect the large change and save immediately
+  })
+}
+
 // Keyboard shortcuts - define handler outside to ensure proper cleanup
 const handleKeydown = (e: KeyboardEvent) => {
   // Clear editor: Ctrl/Cmd + Shift + K
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
     e.preventDefault()
     clearEditor()
+  }
+  
+  // Manual save: Ctrl/Cmd + S
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault()
+    saveNow()
+  }
+  
+  // Detect undo/redo for immediate save
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'y')) {
+    // Save after undo/redo operation completes
+    setTimeout(() => {
+      if (hasUnsavedChanges.value) {
+        saveNow()
+      }
+    }, 50)
   }
 }
 

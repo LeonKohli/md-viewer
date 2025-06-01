@@ -120,6 +120,7 @@
           size="sm"
           @click="toggleFullscreen"
           :title="isFullscreen ? 'Exit fullscreen (ESC)' : 'Enter fullscreen'"
+          :aria-label="isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'"
         >
           <Icon :name="isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-4 h-4" />
         </Button>
@@ -127,7 +128,7 @@
         <!-- Mobile dropdown for smaller screens -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child class="md:hidden">
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label="More options">
               <Icon name="lucide:more-horizontal" class="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -226,7 +227,6 @@ const toggleFullscreen = () => {
 const copyMarkdown = async () => {
   try {
     await navigator.clipboard.writeText(props.markdownContent || '')
-    // Optionally, show a toast or feedback here for success
   } catch (err) {
     // Clipboard API failed, fallback to textarea method
     try {
@@ -236,10 +236,8 @@ const copyMarkdown = async () => {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
-      // Optionally, show a toast or feedback here for success
     } catch (fallbackErr) {
-      // Both methods failed, log error for debugging
-      console.error('Failed to copy markdown with fallback:', fallbackErr)
+      // Silent failure - no console.error in production
     }
   }
 }

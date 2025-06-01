@@ -8,6 +8,7 @@
         size="sm"
         @click="$emit('close')"
         class="h-7 w-7 p-0"
+        aria-label="Close table of contents"
       >
         <Icon name="lucide:x" class="h-4 w-4" />
       </Button>

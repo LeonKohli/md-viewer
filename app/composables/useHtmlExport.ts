@@ -347,7 +347,7 @@ ${renderItems(items)}
             button.textContent = originalText;
           }, 2000);
         }).catch(err => {
-          console.error('Failed to copy:', err);
+          // Silent failure in exported HTML
         });
       }
     });
@@ -756,7 +756,7 @@ ${renderItems(items)}
               button.innerHTML = originalContent;
             }, 2000);
           }).catch(err => {
-            console.error('Failed to copy:', err);
+            // Silent failure in exported HTML
           });
         }
       });

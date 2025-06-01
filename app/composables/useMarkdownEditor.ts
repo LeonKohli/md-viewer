@@ -16,6 +16,48 @@ export function useMarkdownEditor() {
   // Computed ref to the actual textarea element
   const textareaElement = computed(() => textareaRef.value?.textareaElement)
   
+  // Set up auto-save
+  const { 
+    setupAutoSave, 
+    getRecoverableContent,
+    saveStatus,
+    saveError,
+    lastSaveTimeAgo,
+    hasUnsavedChanges,
+    saveNow,
+    saveStats
+  } = useAutoSave()
+  
+  // Recovery state
+  const showRecoveryPrompt = ref(false)
+  const recoverableContent = ref<{ content: string; metadata: any } | null>(null)
+  
+  // Check for recoverable content on mount
+  onMounted(() => {
+    const recoverable = getRecoverableContent()
+    if (recoverable && !globalMarkdownContent.value) {
+      recoverableContent.value = recoverable
+      showRecoveryPrompt.value = true
+    }
+    setupAutoSave()
+  })
+  
+  // Recovery actions
+  const recoverContent = () => {
+    if (recoverableContent.value) {
+      markdownInput.value = recoverableContent.value.content
+      showRecoveryPrompt.value = false
+      recoverableContent.value = null
+    }
+  }
+  
+  const discardRecovery = () => {
+    showRecoveryPrompt.value = false
+    recoverableContent.value = null
+    const { clearSavedContent } = useAutoSave()
+    clearSavedContent()
+  }
+  
   // Editor preferences
   const wordWrap = ref(true)
   const showPreview = ref(false)
@@ -115,10 +157,23 @@ export function useMarkdownEditor() {
     cursorPosition: readonly(cursorPosition),
     stats,
     
+    // Auto-save state
+    saveStatus,
+    saveError,
+    lastSaveTimeAgo,
+    hasUnsavedChanges,
+    showRecoveryPrompt,
+    recoverableContent,
+    
     // Actions
     onInputChange,
     toggleWordWrap,
     togglePreview,
-    updateCursorPosition
+    updateCursorPosition,
+    
+    // Auto-save actions
+    saveNow,
+    recoverContent,
+    discardRecovery
   }
 } 
