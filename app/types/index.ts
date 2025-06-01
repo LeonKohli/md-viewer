@@ -4,7 +4,14 @@ import type { TocItem } from '~/composables/useTableOfContents'
 export interface MarkdownStats {
   words: number
   characters: number
+  charactersNoSpaces: number
   lines: number
+  readingTime: number // in minutes
+  selectedText?: {
+    words: number
+    characters: number
+    percentage: number
+  }
 }
 
 export interface CursorPosition {

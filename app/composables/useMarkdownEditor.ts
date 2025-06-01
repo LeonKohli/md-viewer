@@ -69,17 +69,42 @@ export function useMarkdownEditor() {
   // Cursor tracking
   const cursorPosition = ref<CursorPosition>({ line: 1, column: 1 })
   
+  // Selection tracking
+  const selectedText = ref({ start: 0, end: 0 })
+  
+  
   // Computed stats
   const stats = computed<MarkdownStats>(() => {
     const text = markdownInput.value.trim()
     const words = text ? text.split(/\s+/).filter(word => word.length > 0).length : 0
     const characters = markdownInput.value.length
+    const charactersNoSpaces = markdownInput.value.replace(/\s/g, '').length
     const lines = markdownInput.value.split('\n').length
+    const readingTime = Math.ceil(words / DEFAULT_CONFIG.AVERAGE_READING_SPEED)
     
-    return { words, characters, lines }
+    // Get selected text stats
+    let selectedTextStats
+    if (selectedText.value.start !== selectedText.value.end && textareaElement.value) {
+      const selection = markdownInput.value.substring(selectedText.value.start, selectedText.value.end)
+      const selectedWords = selection.trim() ? selection.trim().split(/\s+/).filter(word => word.length > 0).length : 0
+      selectedTextStats = {
+        words: selectedWords,
+        characters: selection.length,
+        percentage: Math.round((selectedWords / words) * 100) || 0
+      }
+    }
+    
+    return { 
+      words, 
+      characters, 
+      charactersNoSpaces,
+      lines, 
+      readingTime,
+      selectedText: selectedTextStats
+    }
   })
   
-  // Update cursor position
+  // Update cursor position and selection
   const updateCursorPosition = () => {
     const textarea = textareaRef.value?.textareaElement
     if (!textarea) return
@@ -92,6 +117,12 @@ export function useMarkdownEditor() {
     cursorPosition.value = {
       line: lines.length,
       column: lastLine.length + 1
+    }
+    
+    // Update selection tracking
+    selectedText.value = {
+      start: textarea.selectionStart,
+      end: textarea.selectionEnd
     }
   }
   
@@ -145,6 +176,8 @@ export function useMarkdownEditor() {
   // Setup textarea event listeners
   useEventListener(textareaElement, 'click', handleTextareaInteraction)
   useEventListener(textareaElement, 'keyup', handleTextareaInteraction)
+  useEventListener(textareaElement, 'select', handleTextareaInteraction)
+  useEventListener(textareaElement, 'mouseup', handleTextareaInteraction)
   
   // Initialize content
   if (globalMarkdownContent.value) {

@@ -5,7 +5,8 @@ export const DEFAULT_CONFIG = {
   SNAP_THRESHOLD: 3,
   MIN_EDGE_WIDTH: 8,
   MAX_EDGE_WIDTH: 92,
-  SNAP_POINTS: [25, 33.33, 50, 66.67, 75]
+  SNAP_POINTS: [25, 33.33, 50, 66.67, 75],
+  AVERAGE_READING_SPEED: 225 // words per minute
 } as const
 
 // File export settings

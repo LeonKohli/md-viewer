@@ -247,40 +247,13 @@
     </div>
 
     <!-- Status Bar -->
-    <div class="border-t border-border bg-muted/50 px-6 py-2 text-xs text-muted-foreground flex items-center justify-between flex-shrink-0">
-      <div class="flex items-center gap-4">
-        <span class="flex items-center gap-1">
-          <div class="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full"></div>
-          Live Preview
-        </span>
-        <span>•</span>
-        <span class="flex items-center gap-1">
-          <Icon 
-            :name="scrollSyncIcon" 
-            class="h-3 w-3"
-            :class="{
-              'text-green-500 dark:text-green-400': scrollSyncStatus === 'enabled',
-              'text-muted-foreground': scrollSyncStatus === 'disabled'
-            }"
-          />
-          <span>
-            Scroll {{ scrollSyncStatus === 'disabled' ? 'sync off' : 'sync on' }}
-          </span>
-        </span>
-        <span>•</span>
-        <span>{{ stats.words }} {{ stats.words === 1 ? 'word' : 'words' }}</span>
-      </div>
-      <div class="flex items-center gap-4">
-        <span v-if="markdownInput.length > 0" class="flex items-center gap-1">
-          <Icon name="lucide:file-text" class="h-3 w-3" />
-          <span>{{ formatFileSize(markdownInput.length) }}</span>
-        </span>
-        <span v-if="markdownInput.length > 0">•</span>
-        <span v-if="stats.lines > 0">{{ stats.lines }} {{ stats.lines === 1 ? 'line' : 'lines' }}</span>
-        <span v-if="stats.lines > 0">•</span>
-        <span>Ln {{ cursorPosition.line }}, Col {{ cursorPosition.column }}</span>
-      </div>
-    </div>
+    <StatusBar 
+      :stats="stats"
+      :cursor-position="cursorPosition"
+      :sync-enabled="syncEnabled"
+      :scroll-sync-icon="scrollSyncIcon"
+      :has-content="!!markdownInput"
+    />
   </div>
 </template>
 
@@ -539,10 +512,4 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
 
-// Format file size for status bar
-const formatFileSize = (bytes: number): string => {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`
-}
 </script>
