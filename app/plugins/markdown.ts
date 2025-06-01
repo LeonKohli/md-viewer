@@ -22,6 +22,7 @@ import markdownItHighlightjs from 'markdown-it-highlightjs'
 // Advanced plugins
 import { footnote } from '@mdit/plugin-footnote'
 import { katex } from '@mdit/plugin-katex'
+import markdownItPlantUML from 'markdown-it-plantuml'
 
 // Import highlight.js with specific languages
 import hljs from 'highlight.js/lib/core'
@@ -67,11 +68,22 @@ const md = new MarkdownIt({
   langPrefix: 'hljs language-',
 } as MarkdownItOptions)
 
+// Custom slugify function to create cleaner IDs
+const slugify = (s: string) => {
+  return s
+    .trim()
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove special chars and emojis
+    .replace(/[\s_-]+/g, '-') // Replace spaces, underscores with hyphens
+    .replace(/^-+|-+$/g, '') // Remove leading/trailing hyphens
+}
+
 // Apply plugins in logical order
 // 1. Structure and anchors
 md.use(markdownItAnchor, {
   permalink: false, // No visible permalinks, just add IDs
-  level: [1, 2, 3, 4, 5, 6]
+  level: [1, 2, 3, 4, 5, 6],
+  slugify: slugify
 })
 
 // 2. Text formatting
@@ -97,7 +109,8 @@ md.use(markdownItTableOfContents, {
   containerClass: 'table-of-contents',
   markerPattern: /^\[\[toc\]\]/im,
   listType: 'ul',
-  containerHeaderHtml: '<div class="toc-header">Table of Contents</div>'
+  containerHeaderHtml: '<div class="toc-header">Table of Contents</div>',
+  slugify: slugify // Use the same slugify function as anchor plugin
 })
 
 // 6. Footnotes
@@ -125,7 +138,13 @@ md.use(markdownItMultimdTable, {
   headerless: true
 })
 
-// 10. Mermaid support - custom renderer for fence blocks
+// 10. PlantUML support
+md.use(markdownItPlantUML, {
+  imageFormat: 'svg',
+  server: 'https://www.plantuml.com/plantuml'
+})
+
+// 11. Mermaid support - custom renderer for fence blocks
 const originalFence = md.renderer.rules.fence!
 md.renderer.rules.fence = function (tokens, idx, options, env, self) {
   const token = tokens[idx]

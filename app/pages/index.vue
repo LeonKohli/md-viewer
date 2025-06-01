@@ -260,6 +260,8 @@ const navigateToHeading = async (id: string) => {
   if (element) {
     setActiveHeading(id)
     scrollToElement(element)
+    // Update URL hash without triggering browser scroll
+    history.replaceState(null, '', `#${id}`)
   }
 }
 

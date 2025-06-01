@@ -4,7 +4,7 @@ export default defineNuxtPlugin(() => {
   // Use VueUse's clipboard composable for better browser compatibility
   const { copy, copied, isSupported } = useClipboard()
   
-  if (process.client && isSupported.value) {
+  if (isSupported.value) {
     document.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement
       if (target.classList.contains('code-copy-btn')) {

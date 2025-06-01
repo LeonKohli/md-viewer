@@ -100,3 +100,18 @@ declare module 'markdown-it-multimd-table' {
   const markdownItMultimdTable: MarkdownIt.PluginWithOptions<MultimdTableOptions>
   export default markdownItMultimdTable
 }
+
+declare module 'markdown-it-plantuml' {
+  import type MarkdownIt from 'markdown-it'
+  interface PlantUMLOptions {
+    openMarker?: string
+    closeMarker?: string
+    generateSource?: (umlCode: string) => string
+    diagramName?: string
+    imageFormat?: 'svg' | 'png' | 'txt'
+    render?: (tokens: any[], idx: number, options: any, env: any, self: any) => string
+    server?: string
+  }
+  const markdownItPlantUML: MarkdownIt.PluginWithOptions<PlantUMLOptions>
+  export default markdownItPlantUML
+}

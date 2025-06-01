@@ -337,6 +337,60 @@ stateDiagram-v2
 
 ---
 
+## 🌿 PlantUML Diagrams
+
+### Sequence Diagram
+@startuml
+Alice -> Bob: Authentication Request
+Bob --> Alice: Authentication Response
+
+Alice -> Bob: Another authentication Request
+Alice <-- Bob: Another authentication Response
+@enduml
+
+### Use Case Diagram
+@startuml
+left to right direction
+User --> (Write Markdown)
+User --> (Preview)
+User --> (Export)
+
+(Write Markdown) .> (Syntax Highlighting) : includes
+(Preview) .> (Live Update) : includes
+@enduml
+
+### Class Diagram
+@startuml
+class MarkdownEditor {
+  -content: string
+  -renderer: MarkdownIt
+  +parse(text: string): string
+  +export(): void
+}
+
+class Preview {
+  -html: string
+  +update(html: string): void
+  +scrollSync(): void
+}
+
+MarkdownEditor --> Preview : updates
+@enduml
+
+### Activity Diagram
+@startuml
+start
+:User types markdown;
+:Editor captures input;
+:Debounce timer;
+:Parse with markdown-it;
+:Render HTML;
+:Update preview;
+stop
+@enduml
+
+---
+
 ## 🎯 Special Characters & Typography
 
 ### Smart Quotes (Typography)
@@ -417,6 +471,7 @@ This showcase demonstrates all markdown-it features:
 - ✅ Custom attributes on elements
 - ✅ Table of contents generation
 - ✅ Mermaid diagram support
+- ✅ PlantUML diagram support
 - ✅ Smart typography
 - ✅ Code highlighting with copy buttons
 
