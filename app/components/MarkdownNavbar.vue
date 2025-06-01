@@ -43,6 +43,27 @@
           Copy
         </Button>
         
+        <!-- Examples dropdown -->
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button variant="ghost" size="sm">
+              <Icon name="lucide:sparkles" class="w-4 h-4 mr-1" />
+              <span>Examples</span>
+              <Icon name="lucide:chevron-down" class="w-3 h-3 ml-1" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-56">
+            <DropdownMenuItem 
+              v-for="(content, title) in MARKDOWN_EXAMPLES" 
+              :key="title"
+              @click="loadExample(title, content)"
+            >
+              <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
+              {{ title }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
         <!-- Download dropdown -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
@@ -115,10 +136,21 @@
               <Icon name="lucide:trash-2" class="w-4 h-4 mr-2" />
               Clear
             </DropdownMenuItem>
-            <DropdownMenuItem @click="loadSample">
-              <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
-              Sample
-            </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Icon name="lucide:sparkles" class="w-4 h-4 mr-2" />
+                Examples
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem 
+                  v-for="(content, title) in MARKDOWN_EXAMPLES" 
+                  :key="title"
+                  @click="loadExample(title, content)"
+                >
+                  {{ title }}
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
             <DropdownMenuSeparator />
             <DropdownMenuItem @click="copyMarkdown">
               <Icon name="lucide:copy" class="w-4 h-4 mr-2" />
@@ -133,7 +165,7 @@
 
 <script setup lang="ts">
 import type { MarkdownNavbarProps, MarkdownNavbarEmits } from '~/types'
-import { EXPORT_CONFIG } from '~/constants'
+import { EXPORT_CONFIG, MARKDOWN_EXAMPLES } from '~/constants'
 import { SAMPLE_MARKDOWN } from '~/constants/showcase-content'
 import {
   DropdownMenu,
@@ -284,6 +316,13 @@ const loadSample = () => {
 }
 
 /**
+ * Load an example markdown content.
+ */
+const loadExample = (title: string, content: string) => {
+  emit('update:markdownContent', content)
+}
+
+/**
  * Reset the editor panels to their default split.
  */
 const resetPanels = () => {
@@ -297,10 +336,5 @@ const toggleToc = () => {
   emit('toggleToc')
 }
 
-// On mount, load sample content if none exists
-onMounted(() => {
-  if (!props.markdownContent) {
-    loadSample()
-  }
-})
+// Remove auto-loading of sample content
 </script>

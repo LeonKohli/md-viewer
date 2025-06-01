@@ -15,3 +15,5 @@ export const EXPORT_CONFIG = {
   MARKDOWN_MIME_TYPE: 'text/markdown',
   TEXT_MIME_TYPE: 'text/plain'
 } as const
+
+export * from './examples'

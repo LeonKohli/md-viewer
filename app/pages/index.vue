@@ -15,6 +15,25 @@
             Editor
           </div>
           <div class="flex items-center gap-2">
+            <Transition
+              enter-active-class="transition-all duration-200"
+              enter-from-class="opacity-0 scale-95"
+              enter-to-class="opacity-100 scale-100"
+              leave-active-class="transition-all duration-200"
+              leave-from-class="opacity-100 scale-100"
+              leave-to-class="opacity-0 scale-95"
+            >
+              <Button 
+                v-if="markdownInput.length > 0"
+                variant="ghost"
+                size="sm"
+                @click="clearEditor"
+                class="h-7 px-2 text-xs hover:text-destructive transition-colors"
+                title="Clear editor (Ctrl+Shift+K)"
+              >
+                <Icon name="lucide:x" class="h-3 w-3" />
+              </Button>
+            </Transition>
             <TooltipProvider>
             <Tooltip>
               <TooltipTrigger as-child>
@@ -59,7 +78,14 @@
           <Textarea
             ref="textareaRef"
             v-model="markdownInput"
-            placeholder="Start typing your markdown here..."
+            placeholder="Start typing your markdown here...
+
+# Heading 1
+## Heading 2
+**Bold text** and *italic text*
+- List item
+[Link](https://example.com)
+`inline code`"
             :class="[
               'h-full w-full resize-none border-0 bg-transparent dark:bg-transparent p-4 focus-visible:ring-0 font-mono text-sm leading-relaxed editor-scrollbar',
               wordWrap ? '' : 'whitespace-nowrap overflow-x-auto'
@@ -265,6 +291,11 @@ const navigateToHeading = async (id: string) => {
   }
 }
 
+// Clear editor content
+const clearEditor = () => {
+  markdownInput.value = ''
+}
+
 // Set up active heading detection
 const updateActiveHeadingDebounced = useDebounceFn(() => {
   if (previewContainerRef.value) {
@@ -356,4 +387,21 @@ watch(renderedHtml, () => {
 watch(tocHeadings, () => {
   globalTocHeadings.value = tocHeadings.value
 }, { deep: true })
+
+// Keyboard shortcuts
+onMounted(() => {
+  const handleKeydown = (e: KeyboardEvent) => {
+    // Clear editor: Ctrl/Cmd + Shift + K
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'K') {
+      e.preventDefault()
+      clearEditor()
+    }
+  }
+  
+  window.addEventListener('keydown', handleKeydown)
+  
+  onUnmounted(() => {
+    window.removeEventListener('keydown', handleKeydown)
+  })
+})
 </script>
