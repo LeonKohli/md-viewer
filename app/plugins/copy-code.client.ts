@@ -1,6 +1,10 @@
+import { useClipboard } from '@vueuse/core'
+
 export default defineNuxtPlugin(() => {
-  // Simple event delegation for copy buttons
-  if (process.client) {
+  // Use VueUse's clipboard composable for better browser compatibility
+  const { copy, copied, isSupported } = useClipboard()
+  
+  if (process.client && isSupported.value) {
     document.addEventListener('click', async (e) => {
       const target = e.target as HTMLElement
       if (target.classList.contains('code-copy-btn')) {
@@ -8,20 +12,14 @@ export default defineNuxtPlugin(() => {
         if (codeId) {
           const codeEl = document.getElementById(codeId)
           if (codeEl) {
-            try {
-              const code = codeEl.textContent || ''
-              await navigator.clipboard.writeText(code)
-              target.textContent = 'Copied!'
-              setTimeout(() => {
-                target.textContent = 'Copy'
-              }, 2000)
-            } catch (err) {
-              console.error('Copy failed:', err)
-              target.textContent = 'Failed'
-              setTimeout(() => {
-                target.textContent = 'Copy'
-              }, 2000)
-            }
+            const code = codeEl.textContent || ''
+            await copy(code)
+            
+            // Update button text based on copied state
+            target.textContent = 'Copied!'
+            setTimeout(() => {
+              target.textContent = 'Copy'
+            }, 2000)
           }
         }
       }

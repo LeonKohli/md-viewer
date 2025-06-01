@@ -78,13 +78,13 @@
 
       <!-- Resize Handle -->
       <div 
+        ref="dragHandleRef"
         v-show="!isFocusMode"
         class="relative flex-shrink-0 group"
         :class="[
-          isAtEdge ? 'w-2 bg-border/50 hover:bg-accent' : 'w-1 bg-border hover:bg-accent'
+          isAtEdge ? 'w-2 bg-border/50 hover:bg-accent' : 'w-1 bg-border hover:bg-accent',
+          isDragging ? 'bg-accent' : ''
         ]"
-        @mousedown="startResize"
-        @touchstart="startResize"
         @dblclick="resetToCenter"
         :title="isAtEdge ? 'Double-click to center panels' : 'Drag to resize panels'"
         style="cursor: col-resize;"
@@ -228,7 +228,7 @@ useSeoMeta({
 // Composables
 const { markdownInput, renderedHtml, textareaRef, wordWrap, showPreview, cursorPosition, stats, onInputChange, toggleWordWrap, togglePreview } = useMarkdownEditor()
 
-const { editorWidth, previewWidth, isAtEdge, startResize, resetToCenter } = useResizablePanels()
+const { editorWidth, previewWidth, isAtEdge, dragHandleRef, isDragging, resetToCenter } = useResizablePanels()
 
 const { 
   syncEnabled, 

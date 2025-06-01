@@ -3,6 +3,9 @@ import { useEventListener, useThrottleFn } from '@vueuse/core'
 export function useScrollSync() {
   // Scroll sync state
   const isEnabled = ref(true)
+  const toggleSync = () => {
+    isEnabled.value = !isEnabled.value
+  }
   
   // Element refs
   const editorElement = ref<HTMLTextAreaElement | null>(null)
@@ -130,11 +133,10 @@ export function useScrollSync() {
     previewElement.value = element
   }
   
-  // Toggle sync
-  const toggleSync = () => {
-    isEnabled.value = !isEnabled.value
+  // Clear active panel when toggling
+  watch(isEnabled, () => {
     activePanel = null
-  }
+  })
   
   // Manual sync operations
   const syncToTop = () => {

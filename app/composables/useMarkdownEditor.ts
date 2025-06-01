@@ -1,5 +1,6 @@
 import type { MarkdownStats, CursorPosition } from '~/types'
 import { DEFAULT_CONFIG } from '~/constants'
+import { watchDebounced } from '@vueuse/core'
 
 export function useMarkdownEditor() {
   const { $md } = useNuxtApp()
@@ -49,20 +50,23 @@ export function useMarkdownEditor() {
   }
   
   // Parse markdown using the Nuxt plugin
-  const parseMarkdown = () => {
-    if (markdownInput.value.trim()) {
-      renderedHtml.value = $md(markdownInput.value)
+  const parseMarkdown = (content: string) => {
+    if (content.trim()) {
+      renderedHtml.value = $md(content)
     } else {
       renderedHtml.value = ''
     }
   }
   
-  // Debounced parsing for performance
-  const debouncedParse = useDebounceFn(parseMarkdown, DEFAULT_CONFIG.DEBOUNCE_DELAY)
+  // Use watchDebounced for automatic parsing
+  watchDebounced(
+    markdownInput,
+    (newValue) => parseMarkdown(newValue),
+    { debounce: DEFAULT_CONFIG.DEBOUNCE_DELAY }
+  )
   
   // Handle input changes
   const onInputChange = () => {
-    debouncedParse()
     updateCursorPosition()
   }
   
@@ -89,7 +93,6 @@ export function useMarkdownEditor() {
   watch(globalMarkdownContent, (newValue) => {
     if (newValue !== markdownInput.value) {
       markdownInput.value = newValue
-      parseMarkdown()
     }
   })
   
@@ -100,7 +103,6 @@ export function useMarkdownEditor() {
   // Initialize content
   if (globalMarkdownContent.value) {
     markdownInput.value = globalMarkdownContent.value
-    parseMarkdown()
   }
   
   return {
