@@ -300,11 +300,11 @@ import type { TocItem } from '~/composables/useTableOfContents'
 
 // SEO Meta
 useSeoMeta({
-  title: 'Markdown Editor - Live Preview & Export',
+  title: 'Markdown Editor - Live Preview',
   description: 'A powerful online markdown editor with live preview, syntax highlighting, table of contents, and export capabilities. Supports GitHub Flavored Markdown, KaTeX math, and Mermaid diagrams.',
-  ogTitle: 'Markdown Editor - Live Preview & Export',
+  ogTitle: 'Markdown Editor - Live Preview',
   ogDescription: 'Write markdown with live preview, syntax highlighting, and advanced features.',
-  twitterTitle: 'Markdown Editor - Live Preview & Export',
+  twitterTitle: 'Markdown Editor - Live Preview',
   twitterDescription: 'Write markdown with live preview, syntax highlighting, and advanced features.',
 })
 

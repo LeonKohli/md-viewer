@@ -11,4 +11,6 @@ useHead({
     return titleChunk ? `${titleChunk} - Markdown Preview` : 'Markdown Preview';
   }
 })
+
+defineOgImageComponent("WithEmoji")
 </script>
