@@ -308,6 +308,13 @@ useSeoMeta({
   twitterDescription: 'Write markdown with live preview, syntax highlighting, and advanced features.',
 })
 
+// Define custom OG image for this page
+defineOgImageComponent('MarkdownPreview', {
+  title: 'Markdown Editor',
+  description: 'Write beautiful Markdown with live preview and advanced features',
+  colorMode: 'dark'
+})
+
 // Composables
 const { 
   markdownInput, 
