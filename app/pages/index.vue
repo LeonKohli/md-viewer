@@ -8,19 +8,66 @@
       @discard="discardRecovery"
     />
     
+    <!-- Mobile Tab Navigation -->
+    <div class="flex md:hidden border-b border-border bg-background">
+      <button
+        @click="activeTab = 'editor'"
+        :class="[
+          'flex-1 px-4 py-3 text-sm font-medium transition-colors relative',
+          activeTab === 'editor' 
+            ? 'text-foreground' 
+            : 'text-muted-foreground hover:text-foreground'
+        ]"
+      >
+        <div class="flex items-center justify-center gap-2">
+          <Icon name="lucide:edit-3" class="w-4 h-4" />
+          <span>Editor</span>
+        </div>
+        <div 
+          v-if="activeTab === 'editor'"
+          class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+        />
+      </button>
+      <button
+        @click="activeTab = 'preview'"
+        :class="[
+          'flex-1 px-4 py-3 text-sm font-medium transition-colors relative',
+          activeTab === 'preview' 
+            ? 'text-foreground' 
+            : 'text-muted-foreground hover:text-foreground'
+        ]"
+      >
+        <div class="flex items-center justify-center gap-2">
+          <Icon name="lucide:eye" class="w-4 h-4" />
+          <span>Preview</span>
+        </div>
+        <div 
+          v-if="activeTab === 'preview'"
+          class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"
+        />
+      </button>
+    </div>
+    
     <!-- Main Content -->
     <div class="flex flex-1 overflow-hidden relative">
       <!-- Editor Panel -->
       <div 
-        class="border-r border-border flex flex-col"
-        :style="{ width: `${isFocusMode ? 0 : editorWidth}%` }"
-        v-show="!isFocusMode && editorWidth > 5"
+        class="flex flex-col"
+        :class="[
+          'md:border-r md:border-border',
+          // On mobile, show based on active tab
+          activeTab === 'editor' ? 'flex' : 'hidden',
+          // On desktop, use resizable panels
+          'md:flex'
+        ]"
+        :style="{ width: isDesktop ? `${isFocusMode ? 0 : editorWidth}%` : '100%' }"
+        v-show="isDesktop ? (!isFocusMode && editorWidth > 5) : (activeTab === 'editor')"
       >
         <!-- Editor Header -->
-        <div class="px-4 py-1.5 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
+        <div class="px-3 md:px-4 py-1.5 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
           <div class="flex items-center gap-2">
             <Icon name="lucide:file-text" class="w-4 h-4" />
-            Editor
+            <span class="hidden md:inline">Editor</span>
           </div>
           <div class="flex items-center gap-2">
             <Transition
@@ -93,33 +140,19 @@
             >
               Wrap
             </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              class="lg:hidden p-1"
-              @click="togglePreview"
-              :aria-label="showPreview ? 'Switch to editor' : 'Switch to preview'"
-            >
-              <Icon :name="showPreview ? 'lucide:edit-3' : 'lucide:eye'" class="h-3 w-3" />
-            </Button>
+            <!-- Mobile preview toggle button removed - using tabs instead -->
           </div>
         </div>
 
         <!-- Textarea -->
-        <div class="flex-1 relative overflow-hidden" :class="{ 'hidden lg:block': showPreview }">
+        <div class="flex-1 relative overflow-hidden">
           <Textarea
             ref="textareaRef"
             v-model="markdownInput"
-            placeholder="Start typing your markdown here...
-
-# Heading 1
-## Heading 2
-**Bold text** and *italic text*
-- List item
-[Link](https://example.com)
-`inline code`"
+            :placeholder="isMobile ? 'Start typing...' : 'Start typing your markdown here...\n\n# Heading 1\n## Heading 2\n**Bold text** and *italic text*\n- List item\n[Link](https://example.com)\n`inline code`'"
             :class="[
-              'h-full w-full resize-none border-0 bg-transparent dark:bg-transparent p-4 focus-visible:ring-0 font-mono text-sm leading-relaxed editor-scrollbar',
+              'h-full w-full resize-none border-0 bg-transparent dark:bg-transparent focus-visible:ring-0 font-mono text-sm leading-relaxed editor-scrollbar',
+              'p-3 md:p-4',
               wordWrap ? '' : 'whitespace-nowrap overflow-x-auto'
             ]"
             spellcheck="false"
@@ -129,7 +162,7 @@
         </div>
 
         <!-- Editor Status -->
-        <div class="px-4 py-2 border-t border-border bg-muted/50 text-xs text-muted-foreground flex justify-between flex-shrink-0">
+        <div class="px-3 md:px-4 py-2 border-t border-border bg-muted/50 text-xs text-muted-foreground flex justify-between flex-shrink-0">
           <div class="flex items-center gap-3">
             <span>{{ stats.characters }} characters</span>
             <span>{{ stats.lines }} lines</span>
@@ -144,11 +177,11 @@
         </div>
       </div>
 
-      <!-- Resize Handle -->
+      <!-- Resize Handle - Desktop Only -->
       <div 
         ref="dragHandleRef"
-        v-show="!isFocusMode"
-        class="relative flex-shrink-0 group"
+        v-show="isDesktop && !isFocusMode"
+        class="relative flex-shrink-0 group hidden md:block"
         :class="[
           isAtEdge ? 'w-2 bg-border/50 hover:bg-accent' : 'w-1 bg-border hover:bg-accent',
           isDragging ? 'bg-accent' : ''
@@ -176,14 +209,20 @@
       <!-- Preview Panel -->
       <div 
         class="flex flex-col"
-        :style="{ width: `${isFocusMode ? 100 : previewWidth}%` }"
-        :class="{ 'hidden lg:flex': !showPreview && editorWidth > 5 && !isFocusMode }"
+        :class="[
+          // On mobile, show based on active tab
+          activeTab === 'preview' ? 'flex' : 'hidden',
+          // On desktop, always show unless in focus mode
+          'md:flex'
+        ]"
+        :style="{ width: isDesktop ? `${isFocusMode ? 100 : previewWidth}%` : '100%' }"
+        v-show="isDesktop ? true : (activeTab === 'preview')"
       >
         <!-- Preview Header -->
-        <div class="px-4 py-1.5 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
+        <div class="px-3 md:px-4 py-1.5 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
           <div class="flex items-center gap-2">
             <Icon name="lucide:eye" class="w-4 h-4" />
-            Preview
+            <span class="hidden md:inline">Preview</span>
           </div>
           <div class="flex items-center gap-2">
             <Button 
@@ -197,15 +236,7 @@
               <Icon :name="isFocusMode ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="h-3 w-3 mr-1" />
               <span>{{ isFocusMode ? 'Exit' : 'Focus' }}</span>
             </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              class="lg:hidden p-1"
-              @click="togglePreview"
-              aria-label="Switch to editor"
-            >
-              <Icon name="lucide:edit-3" class="h-3 w-3" />
-            </Button>
+            <!-- Mobile editor toggle button removed - using tabs instead -->
           </div>
         </div>
 
@@ -213,14 +244,21 @@
         <div ref="previewContainerRef" class="flex-1 overflow-auto bg-background preview-scrollbar">
           <div 
             v-if="renderedHtml"
-            class="p-6 prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-m-20 prose-headings:tracking-tight prose-h1:text-2xl lg:prose-h1:text-4xl prose-h1:font-extrabold prose-h2:text-xl lg:prose-h2:text-3xl prose-h2:font-semibold prose-h3:text-lg lg:prose-h3:text-2xl prose-h3:font-semibold prose-h4:text-base lg:prose-h4:text-xl prose-h4:font-semibold prose-p:leading-7 prose-blockquote:border-l-2 prose-blockquote:pl-6 prose-blockquote:italic prose-code:relative prose-code:rounded prose-code:font-mono prose-code:text-sm prose-table:text-sm dark:prose-headings:text-foreground dark:prose-p:text-muted-foreground dark:prose-strong:text-foreground dark:prose-a:text-primary dark:prose-blockquote:text-muted-foreground dark:prose-blockquote:border-muted dark:prose-th:text-foreground dark:prose-td:text-muted-foreground"
+            class="prose prose-neutral dark:prose-invert max-w-none prose-headings:scroll-m-20 prose-headings:tracking-tight prose-h1:font-extrabold prose-h2:font-semibold prose-h3:font-semibold prose-h4:font-semibold prose-p:leading-7 prose-blockquote:border-l-2 prose-blockquote:pl-6 prose-blockquote:italic prose-code:relative prose-code:rounded prose-code:font-mono prose-code:text-sm prose-table:text-sm dark:prose-headings:text-foreground dark:prose-p:text-muted-foreground dark:prose-strong:text-foreground dark:prose-a:text-primary dark:prose-blockquote:text-muted-foreground dark:prose-blockquote:border-muted dark:prose-th:text-foreground dark:prose-td:text-muted-foreground"
+            :class="[
+              'p-4 md:p-6',
+              'prose-h1:text-xl md:prose-h1:text-2xl lg:prose-h1:text-4xl',
+              'prose-h2:text-lg md:prose-h2:text-xl lg:prose-h2:text-3xl',
+              'prose-h3:text-base md:prose-h3:text-lg lg:prose-h3:text-2xl',
+              'prose-h4:text-sm md:prose-h4:text-base lg:prose-h4:text-xl'
+            ]"
             v-html="renderedHtml"
           />
-          <div v-else class="p-6 flex items-center justify-center h-full text-muted-foreground">
+          <div v-else class="p-4 md:p-6 flex items-center justify-center h-full text-muted-foreground">
             <div class="text-center">
-              <Icon name="lucide:file-text" class="h-12 w-12 mx-auto mb-4 opacity-40" />
-              <p class="text-lg font-medium mb-2">Start typing to see preview</p>
-              <p class="text-sm opacity-70">Your markdown will appear here</p>
+              <Icon name="lucide:file-text" class="h-10 w-10 md:h-12 md:w-12 mx-auto mb-3 md:mb-4 opacity-40" />
+              <p class="text-base md:text-lg font-medium mb-1 md:mb-2">Start typing to see preview</p>
+              <p class="text-xs md:text-sm opacity-70">Your markdown will appear here</p>
             </div>
           </div>
         </div>
@@ -276,12 +314,10 @@ const {
   renderedHtml, 
   textareaRef, 
   wordWrap, 
-  showPreview, 
   cursorPosition, 
   stats, 
   onInputChange, 
-  toggleWordWrap, 
-  togglePreview,
+  toggleWordWrap,
   // Auto-save
   saveStatus,
   saveError,
@@ -415,6 +451,25 @@ const globalTocHeadings = useState<TocItem[]>('tocHeadings', () => [])
 
 // Local state
 const isFocusMode = ref(false)
+const activeTab = ref<'editor' | 'preview'>('editor')
+
+// Responsive helpers
+const isDesktop = ref(true)
+const isMobile = computed(() => !isDesktop.value)
+
+// Set up responsive detection
+const updateBreakpoint = () => {
+  isDesktop.value = window.innerWidth >= 768 // md breakpoint
+}
+
+onMounted(() => {
+  updateBreakpoint()
+  window.addEventListener('resize', updateBreakpoint)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updateBreakpoint)
+})
 
 // Toggle focus mode
 const toggleFocusMode = () => {
@@ -422,6 +477,11 @@ const toggleFocusMode = () => {
   // Exit focus mode when resetting panels
   if (isFocusMode.value) {
     showToc.value = false
+  }
+  
+  // On mobile, switch to editor tab when resetting
+  if (isMobile.value) {
+    activeTab.value = 'editor'
   }
 }
 
@@ -433,8 +493,10 @@ watch(resetPanelsEvent, (timestamp) => {
   }
 })
 
-// Set up scroll sync elements
+// Set up scroll sync elements - only on desktop
 watchEffect(() => {
+  if (!isDesktop.value) return
+  
   // Access the actual textarea element from the Textarea component
   if (textareaRef.value && textareaRef.value.textareaElement) {
     setEditorElement(textareaRef.value.textareaElement)

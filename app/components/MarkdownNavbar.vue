@@ -1,14 +1,14 @@
 <template>
-  <header class="border-b bg-background px-4 py-2">
+  <header class="border-b bg-background px-3 md:px-4 py-2">
     <div class="flex items-center justify-between">
       <!-- Logo and title -->
       <div class="flex items-center gap-2">
-        <Icon name="lucide:file-text" class="w-5 h-5 text-primary" />
-        <h1 class="text-lg font-semibold">Markdown Preview</h1>
+        <Icon name="lucide:file-text" class="w-4 h-4 md:w-5 md:h-5 text-primary" />
+        <h1 class="text-base md:text-lg font-semibold">Markdown</h1>
       </div>
       
       <!-- Toolbar Actions -->
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1 md:gap-2">
         <!-- Table of Contents button -->
         <Button 
           variant="ghost" 
@@ -16,17 +16,19 @@
           @click="toggleToc"
           :title="`Toggle Table of Contents (${isMac ? 'Cmd' : 'Ctrl'}+/)`"
           :class="{ 'bg-accent text-accent-foreground': showToc }"
+          class="px-2"
         >
-          <Icon name="lucide:list" class="w-4 h-4 mr-1.5" />
-          TOC
+          <Icon name="lucide:list" class="w-4 h-4" />
+          <span class="hidden sm:inline ml-1.5">TOC</span>
         </Button>
         
-        <!-- Reset panels button -->
+        <!-- Reset panels button - Desktop only -->
         <Button 
           variant="ghost" 
           size="sm"
           @click="resetPanels"
           title="Reset to 50/50 split"
+          class="hidden md:flex"
         >
           <Icon name="lucide:layout-panel-left" class="w-4 h-4 mr-1.5" />
           Reset
@@ -38,14 +40,15 @@
           size="sm"
           @click="copyMarkdown"
           title="Copy markdown"
+          class="hidden sm:flex"
         >
           <Icon name="lucide:copy" class="w-4 h-4 mr-1.5" />
           Copy
         </Button>
         
-        <!-- Examples dropdown -->
+        <!-- Examples dropdown - Desktop only -->
         <DropdownMenu>
-          <DropdownMenuTrigger as-child>
+          <DropdownMenuTrigger as-child class="hidden md:flex">
             <Button variant="ghost" size="sm">
               <Icon name="lucide:sparkles" class="w-4 h-4 mr-1" />
               <span>Examples</span>
@@ -66,10 +69,10 @@
         
         <!-- Download dropdown -->
         <DropdownMenu>
-          <DropdownMenuTrigger as-child>
+          <DropdownMenuTrigger as-child class="hidden sm:flex">
             <Button variant="ghost" size="sm">
               <Icon name="lucide:download" class="w-4 h-4 mr-1.5" />
-              Export
+              <span class="hidden lg:inline">Export</span>
               <Icon name="lucide:chevron-down" class="w-3 h-3 ml-1" />
             </Button>
           </DropdownMenuTrigger>
@@ -127,15 +130,15 @@
 
         <!-- Mobile dropdown for smaller screens -->
         <DropdownMenu>
-          <DropdownMenuTrigger as-child class="md:hidden">
-            <Button variant="ghost" size="sm" aria-label="More options">
-              <Icon name="lucide:more-horizontal" class="w-4 h-4" />
+          <DropdownMenuTrigger as-child class="sm:hidden">
+            <Button variant="ghost" size="sm" aria-label="More options" class="px-2">
+              <Icon name="lucide:more-vertical" class="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-48">
-            <DropdownMenuItem @click="clearContent">
-              <Icon name="lucide:trash-2" class="w-4 h-4 mr-2" />
-              Clear
+            <DropdownMenuItem @click="copyMarkdown">
+              <Icon name="lucide:copy" class="w-4 h-4 mr-2" />
+              Copy
             </DropdownMenuItem>
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
@@ -152,11 +155,26 @@
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem @click="copyMarkdown">
-              <Icon name="lucide:copy" class="w-4 h-4 mr-2" />
-              Copy
-            </DropdownMenuItem>
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Icon name="lucide:download" class="w-4 h-4 mr-2" />
+                Export
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem @click="downloadMarkdown">
+                  <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
+                  Markdown
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="downloadAsText">
+                  <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
+                  Text
+                </DropdownMenuItem>
+                <DropdownMenuItem @click="downloadAsHtml('simple')">
+                  <Icon name="lucide:code" class="w-4 h-4 mr-2" />
+                  HTML
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

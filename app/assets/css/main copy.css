@@ -1,0 +1,453 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --background: hsl(48 33.3333% 97.0588%);
+  --foreground: hsl(48 19.6078% 20%);
+  --card: hsl(48 33.3333% 97.0588%);
+  --card-foreground: hsl(60 2.5641% 7.6471%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(50.7692 19.4030% 13.1373%);
+  --primary: hsl(15.1111 55.5556% 52.3529%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(46.1538 22.8070% 88.8235%);
+  --secondary-foreground: hsl(50.7692 8.4967% 30.0000%);
+  --muted: hsl(44.0000 29.4118% 90%);
+  --muted-foreground: hsl(50.0000 2.3622% 50.1961%);
+  --accent: hsl(46.1538 22.8070% 88.8235%);
+  --accent-foreground: hsl(50.7692 19.4030% 13.1373%);
+  --destructive: hsl(60 2.5641% 7.6471%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(50 7.5000% 84.3137%);
+  --input: hsl(50.7692 7.9755% 68.0392%);
+  --ring: hsl(210 74.8031% 49.8039%);
+  --chart-1: hsl(18.2813 57.1429% 43.9216%);
+  --chart-2: hsl(251.4545 84.6154% 74.5098%);
+  --chart-3: hsl(46.1538 28.2609% 81.9608%);
+  --chart-4: hsl(256.5517 49.1525% 88.4314%);
+  --chart-5: hsl(17.7778 60% 44.1176%);
+  --sidebar: hsl(51.4286 25.9259% 94.7059%);
+  --sidebar-foreground: hsl(60 2.5210% 23.3333%);
+  --sidebar-primary: hsl(15.1111 55.5556% 52.3529%);
+  --sidebar-primary-foreground: hsl(0 0% 98.4314%);
+  --sidebar-accent: hsl(46.1538 22.8070% 88.8235%);
+  --sidebar-accent-foreground: hsl(0 0% 20.3922%);
+  --sidebar-border: hsl(0 0% 92.1569%);
+  --sidebar-ring: hsl(0 0% 70.9804%);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+
+
+  /* Syntax highlighting colors - Light mode (GitHub theme) */
+  --hl-base: oklch(0.2671 0.0196 98.9390); /* --popover-foreground for light mode */
+  --hl-comment: #6a737d;
+  --hl-keyword: #d73a49;
+  --hl-string: #032f62;
+  --hl-number: #005cc5;
+  --hl-function: #6f42c1;
+  --hl-variable: #e36209;
+  --hl-type: #005cc5;
+  --hl-attribute: #d73a49;
+  --hl-symbol: #e36209;
+  --hl-namespace: #005cc5;
+  --hl-literal: #005cc5;
+  --hl-punctuation: #24292e;
+  --hl-deletion: #b31d28;
+  --hl-addition: #22863a;
+  --hl-emphasis: #24292e;
+  --hl-strong: #24292e;
+  
+  /* Code block background */
+  --code-bg: oklch(0.9818 0.0054 95.0986); /* Same as --background for light mode */
+  --code-bg-inline: oklch(0.9341 0.0153 90.2390); /* Same as --muted for light mode */
+}
+
+.dark {
+  --background: hsl(60 2.7027% 14.5098%);
+  --foreground: hsl(46.1538 9.7744% 73.9216%);
+  --card: hsl(60 2.7027% 14.5098%);
+  --card-foreground: hsl(48 33.3333% 97.0588%);
+  --popover: hsl(60 2.1277% 18.4314%);
+  --popover-foreground: hsl(60 5.4545% 89.2157%);
+  --primary: hsl(14.7692 63.1068% 59.6078%);
+  --primary-foreground: hsl(0 0% 100%);
+  --secondary: hsl(48 33.3333% 97.0588%);
+  --secondary-foreground: hsl(60 2.1277% 18.4314%);
+  --muted: hsl(60 3.8462% 10.1961%);
+  --muted-foreground: hsl(51.4286 8.8608% 69.0196%);
+  --accent: hsl(48 10.6383% 9.2157%);
+  --accent-foreground: hsl(51.4286 25.9259% 94.7059%);
+  --destructive: hsl(0 84.2365% 60.1961%);
+  --destructive-foreground: hsl(0 0% 100%);
+  --border: hsl(60 5.0847% 23.1373%);
+  --input: hsl(52.5000 5.1282% 30.5882%);
+  --ring: hsl(210 74.8031% 49.8039%);
+  --chart-1: hsl(18.2813 57.1429% 43.9216%);
+  --chart-2: hsl(251.4545 84.6154% 74.5098%);
+  --chart-3: hsl(48 10.6383% 9.2157%);
+  --chart-4: hsl(248.2759 25.2174% 22.5490%);
+  --chart-5: hsl(17.7778 60% 44.1176%);
+  --sidebar: hsl(30 3.3333% 11.7647%);
+  --sidebar-foreground: hsl(46.1538 9.7744% 73.9216%);
+  --sidebar-primary: hsl(0 0% 20.3922%);
+  --sidebar-primary-foreground: hsl(0 0% 98.4314%);
+  --sidebar-accent: hsl(60 3.4483% 5.6863%);
+  --sidebar-accent-foreground: hsl(46.1538 9.7744% 73.9216%);
+  --sidebar-border: hsl(0 0% 92.1569%);
+  --sidebar-ring: hsl(0 0% 70.9804%);
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --radius: 0.5rem;
+  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  /* Syntax highlighting colors - Dark mode (GitHub Dark theme) */
+  --hl-base: oklch(0.9211 0.0040 106.4781); /* --popover-foreground for dark mode */
+  --hl-comment: #8b949e;
+  --hl-keyword: #ff7b72;
+  --hl-string: #a5d6ff;
+  --hl-number: #79c0ff;
+  --hl-function: #d2a8ff;
+  --hl-variable: #ffa657;
+  --hl-type: #79c0ff;
+  --hl-attribute: #ff7b72;
+  --hl-symbol: #ffa657;
+  --hl-namespace: #79c0ff;
+  --hl-literal: #79c0ff;
+  --hl-punctuation: #c9d1d9;
+  --hl-deletion: #ffdcd7;
+  --hl-addition: #aff5b4;
+  --hl-emphasis: #c9d1d9;
+  --hl-strong: #c9d1d9;
+  
+  /* Code block background */
+  --code-bg: oklch(0.2679 0.0036 106.6427); /* Same as --background for dark mode */
+  --code-bg-inline: oklch(0.2213 0.0038 106.7070 / 0.5); /* --muted with 50% opacity for dark mode */
+  
+
+}
+
+@theme inline {
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+  
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    background-color: var(--background);
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+}
+
+/* Custom highlight.js styles for light/dark mode compatibility */
+@layer components {
+  /* Simple code wrapper for copy button */
+  .code-block-wrapper {
+    position: relative;
+    margin: 1rem 0;
+  }
+  
+  .code-copy-btn {
+    cursor: pointer;
+  }
+
+  /* Code block styling */
+  .prose :where(code):not(.hljs) {
+    background: var(--code-bg-inline) !important;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+    font-size: 0.875em;
+    color: var(--foreground) !important;
+  }
+
+  .prose :where(pre) {
+    background: var(--code-bg) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 0.375rem;
+    padding: 1rem !important;
+    overflow-x: auto;
+    margin: 1rem 0;
+    color: var(--hl-base) !important;
+  }
+  
+  /* Ensure prose doesn't override our syntax highlighting */
+  .prose :where(pre code).hljs {
+    background: transparent !important;
+    color: var(--hl-base) !important;
+  }
+
+  /* Syntax highlighting with CSS variables */
+  .hljs,
+  .prose .hljs {
+    background: transparent !important;
+    padding: 0 !important;
+    color: var(--hl-base) !important;
+  }
+  
+  /* Base tokens */
+  .hljs-comment,
+  .hljs-quote,
+  .hljs-meta { color: var(--hl-comment) !important; }
+  
+  /* Keywords and control */
+  .hljs-keyword,
+  .hljs-selector-tag,
+  .hljs-literal,
+  .hljs-title,
+  .hljs-section,
+  .hljs-doctag,
+  .hljs-type,
+  .hljs-name,
+  .hljs-strong { color: var(--hl-keyword) !important; }
+  
+  /* Strings */
+  .hljs-string,
+  .hljs-quote.hljs-quote { color: var(--hl-string) !important; }
+  
+  /* Numbers and constants */
+  .hljs-number,
+  .hljs-literal.hljs-literal { color: var(--hl-number) !important; }
+  
+  /* Functions */
+  .hljs-built_in,
+  .hljs-title.class_,
+  .hljs-title.function_ { color: var(--hl-function) !important; }
+  
+  /* Variables and properties */
+  .hljs-symbol,
+  .hljs-template-variable,
+  .hljs-variable,
+  .hljs-attr,
+  .hljs-attribute,
+  .hljs-property { color: var(--hl-variable) !important; }
+  
+  /* CSS selectors and regex */
+  .hljs-selector-id,
+  .hljs-selector-class,
+  .hljs-selector-attr,
+  .hljs-selector-pseudo,
+  .hljs-regexp,
+  .hljs-link { color: var(--hl-type) !important; }
+  
+  /* Diff */
+  .hljs-addition { 
+    color: var(--hl-addition) !important;
+    background-color: transparent;
+  }
+  
+  .hljs-deletion { 
+    color: var(--hl-deletion) !important;
+    background-color: transparent;
+  }
+  
+  /* Emphasis */
+  .hljs-emphasis { 
+    color: var(--hl-emphasis) !important;
+    font-style: italic;
+  }
+  
+  .hljs-strong { 
+    color: var(--hl-strong) !important;
+    font-weight: bold;
+  }
+
+  /* Copy button styling */
+  .code-copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    line-height: 1rem;
+    border-radius: 0.25rem;
+    border: 1px solid var(--border);
+    background: var(--background);
+    color: var(--muted-foreground);
+    opacity: 0;
+    transition: all 0.2s;
+    cursor: pointer;
+    font-family: var(--font-sans);
+  }
+  
+  .code-block-wrapper:hover .code-copy-btn {
+    opacity: 1;
+  }
+  
+  .code-copy-btn:hover {
+    background: var(--muted);
+    color: var(--foreground);
+  }
+  
+  .code-copy-btn:active {
+    transform: scale(0.95);
+  }
+
+  /* KaTeX math rendering - left aligned */
+  .katex-display {
+    text-align: left !important;
+    margin: 1em 0 !important;
+    display: block !important;
+  }
+  
+  .katex-display > .katex {
+    display: inline-block !important;
+    text-align: left !important;
+    margin-left: 2em !important;
+  }
+  
+  /* Override prose centering */
+  .prose .katex-display {
+    text-align: left !important;
+  }
+  
+  /* Modern scrollbar styling */
+  @supports (scrollbar-color: auto) {
+    * {
+      scrollbar-color: var(--muted) transparent;
+      scrollbar-width: auto;
+    }
+    
+    *:hover {
+      scrollbar-color: var(--muted-foreground) transparent;
+    }
+  }
+  
+  /* Webkit scrollbars */
+  @supports selector(::-webkit-scrollbar) {
+    ::-webkit-scrollbar {
+      width: 14px;
+      height: 14px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--muted);
+      border-radius: 7px;
+      border: 3px solid transparent;
+      background-clip: content-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--muted-foreground);
+      background-clip: content-box;
+    }
+
+    /* Smaller scrollbars for specific areas */
+    .editor-scrollbar::-webkit-scrollbar,
+    .preview-scrollbar::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    .toc-container ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .toc-container ::-webkit-scrollbar-thumb {
+      border: 2px solid transparent;
+    }
+  }
+  
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      scroll-behavior: auto !important;
+    }
+  }
+  
+  /* Custom responsive breakpoint for xs screens */
+  @media (min-width: 480px) {
+    .xs\:inline {
+      display: inline;
+    }
+    .xs\:hidden {
+      display: none;
+    }
+  }
+}

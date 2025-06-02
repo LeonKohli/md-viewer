@@ -8,14 +8,30 @@ export function useResizablePanels() {
   // Create a draggable handle ref
   const dragHandleRef = ref<HTMLElement>()
   
+  // Check if we're on mobile
+  const isMobile = ref(false)
+  const checkMobile = () => {
+    isMobile.value = window.innerWidth < 768 // md breakpoint
+  }
+  
+  onMounted(() => {
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+  })
+  
+  onUnmounted(() => {
+    window.removeEventListener('resize', checkMobile)
+  })
+  
   // Edge detection
   const isAtEdge = computed(() => editorWidth.value <= 5 || editorWidth.value >= 95)
   
-  // Use VueUse's draggable composable
+  // Use VueUse's draggable composable - disable on mobile
   const { x, isDragging } = useDraggable(dragHandleRef, {
     preventDefault: true,
+    disabled: isMobile,
     onMove: (position) => {
-      if (!dragHandleRef.value) return
+      if (!dragHandleRef.value || isMobile.value) return
       
       const container = dragHandleRef.value.parentElement
       if (!container) return
@@ -36,8 +52,10 @@ export function useResizablePanels() {
     }
   })
   
-  // Watch for dragging state to update cursor
-  watch(isDragging, (dragging) => {
+  // Watch for dragging state to update cursor - only on desktop
+  watch([isDragging, isMobile], ([dragging, mobile]) => {
+    if (mobile) return
+    
     if (dragging) {
       document.body.style.cursor = 'col-resize'
       document.body.style.userSelect = 'none'
