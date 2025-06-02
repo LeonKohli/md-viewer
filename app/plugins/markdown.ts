@@ -144,14 +144,23 @@ md.use(markdownItPlantUML, {
   server: 'https://www.plantuml.com/plantuml'
 })
 
-// 11. Mermaid support - custom renderer for fence blocks
+// 11. Mermaid support - custom renderer for fence blocks with optimized loading
 const originalFence = md.renderer.rules.fence!
 md.renderer.rules.fence = function (tokens, idx, options, env, self) {
   const token = tokens[idx]
   if (token?.info === 'mermaid') {
     const content = token.content.trim()
     const escapedText = content.replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    return `<div class="mermaid-container" data-mermaid-src="${escapedText}"><pre class="mermaid">${content}</pre></div>`
+    // Add data attribute for backwards compatibility
+    // The actual rendering will be handled by the optimized Mermaid loading system
+    return `<div class="mermaid-container" data-mermaid-src="${escapedText}">
+      <pre class="mermaid">${content}</pre>
+      <noscript>
+        <div class="text-sm text-muted-foreground p-4 border rounded">
+          Mermaid diagram requires JavaScript to render
+        </div>
+      </noscript>
+    </div>`
   }
   return originalFence(tokens, idx, options, env, self)
 }

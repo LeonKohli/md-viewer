@@ -10,6 +10,7 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/color-mode',
     '@nuxtjs/seo',
+    '@nuxt/scripts',
   ],
   future: {
     compatibilityVersion: 4,
