@@ -41,4 +41,15 @@ export default defineNuxtConfig({
       include: ['highlight.js/lib/core'] // Avoids Nitro cold-start cost
     }
   },
+  // Umami Analytics configuration for self-hosted instance
+  scripts: {
+    registry: {
+      umamiAnalytics: {
+        websiteId: process.env.NUXT_PUBLIC_UMAMI_WEBSITE_ID || 'YOUR_WEBSITE_ID',
+        scriptInput: {
+          src: process.env.NUXT_PUBLIC_UMAMI_HOST ? `${process.env.NUXT_PUBLIC_UMAMI_HOST}/script.js` : 'https://cloud.umami.is/script.js'
+        }
+      }
+    }
+  }
 })
