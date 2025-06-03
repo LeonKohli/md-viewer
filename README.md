@@ -1,169 +1,148 @@
-# Nuxt Shadcn Boilerplate
+# Markdown Editor
 
-[![Nuxt Logo](https://nuxt.com/assets/design-kit/logo-green-white.svg)](https://nuxt.com)
+A modern, feature-rich markdown editor with live preview, built with Nuxt 3 and Vue 3. Experience real-time rendering, syntax highlighting, and seamless editing in a beautiful, responsive interface.
 
-**A modern, production-ready Nuxt 3 boilerplate with shadcn-vue, Tailwind CSS, VueUse, color mode, and SEO optimization.**
-
-This boilerplate provides a solid foundation for building modern web applications with the latest technologies and best practices.
-
----
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Nuxt](https://img.shields.io/badge/Nuxt-3.x-00DC82.svg)
+![Vue](https://img.shields.io/badge/Vue-3.x-4FC08D.svg)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg)
 
 ## ✨ Features
 
-- **🚀 Nuxt 3** - The intuitive Vue framework with server-side rendering, auto-imports, and file-based routing
-- **🎨 shadcn-vue** - Beautiful, accessible components built with Reka UI and styled with Tailwind CSS
-- **💨 Tailwind CSS v4** - Utility-first CSS framework for rapid UI development
-- **🔧 VueUse** - Collection of essential Vue composition utilities
-- **🌙 Color Mode** - Built-in dark/light mode support with smooth transitions
-- **📱 Responsive Design** - Mobile-first approach with modern design patterns
-- **🔍 SEO Optimized** - Pre-configured SEO settings with meta tags and Open Graph
-- **⚡ Icons** - Nuxt Icon with Lucide Icons for beautiful iconography
-- **📦 TypeScript** - Full TypeScript support with auto-generated types
-- **🎯 Developer Experience** - ESLint, auto-imports, and excellent DX
+### 🚀 Core Features
+- **Live Preview** - See your markdown rendered in real-time as you type
+- **Syntax Highlighting** - Beautiful code blocks with language-specific highlighting
+- **Dark Mode** - Easy on the eyes with automatic theme detection
+- **Auto-Save** - Never lose your work with intelligent auto-saving
+- **PWA Support** - Install as a desktop app or use offline
 
-## 🛠️ Tech Stack
+### 📝 Markdown Features
+- **Extended Markdown** - Tables, footnotes, task lists, and more
+- **Math Support** - LaTeX math rendering with KaTeX
+- **Mermaid Diagrams** - Create flowcharts and diagrams with text
+- **PlantUML Support** - UML diagrams from simple text descriptions
+- **Table of Contents** - Auto-generated navigation for your documents
+- **Smart Copy** - One-click code block copying
 
-- **Framework:** [Nuxt.js 3](https://nuxt.com)
-- **UI Components:** [shadcn-vue](https://www.shadcn-vue.com/) (via [Reka UI](https://www.reka-ui.com/))
-- **Styling:** [Tailwind CSS v4](https://tailwindcss.com/)
-- **Icons:** [Nuxt Icon](https://nuxt.com/modules/icon) with [Lucide Icons](https://lucide.dev/)
-- **Utilities:** [VueUse](https://vueuse.org/)
-- **Package Manager:** [Bun](https://bun.sh/) (recommended)
+### 💻 Editor Features
+- **Scroll Sync** - Synchronized scrolling between editor and preview
+- **Word Wrap** - Toggle word wrapping for long lines
+- **Focus Mode** - Distraction-free writing experience
+- **Resizable Panels** - Drag to resize editor and preview panes
+- **Mobile Responsive** - Optimized for all devices
+- **Export Options** - Download as Markdown, HTML, or plain text
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
 ### Prerequisites
-
 - Node.js 18+ or Bun
 - Git
 
 ### Installation
 
-1. **Clone or use this template:**
-   ```bash
-   # Clone the repository
-   git clone <your-repo-url>
-   cd nuxt-shadcn-boilerplate
-   
-   # Or use as template on GitHub
-   ```
+```bash
+# Clone the repository
+git clone https://github.com/LeonKohli/md-viewer.git
+cd md-viewer
 
-2. **Install dependencies:**
-   ```bash
-   # Using Bun (recommended)
-   bun install
-   
-   # Using npm
-   npm install
-   
-   # Using pnpm
-   pnpm install
-   
-   # Using yarn
-   yarn install
-   ```
+# Install dependencies (using bun)
+bun install
 
-3. **Start development server:**
-   ```bash
-   # Using Bun
-   bun run dev
-   
-   # Using npm
-   npm run dev
-   
-   # Using pnpm
-   pnpm dev
-   
-   # Using yarn
-   yarn dev
-   ```
+# Start development server
+bun run dev
+```
 
-4. **Open your browser:**
-   Navigate to `http://localhost:3000` to see your application running.
+The app will be available at `http://localhost:3000`
+
+### Available Scripts
+
+```bash
+bun run dev          # Start development server
+bun run build        # Build for production
+bun run preview      # Preview production build
+bun run typecheck    # Run TypeScript type checking
+```
+
+## 🎯 Usage
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl/Cmd + S` | Manual save |
+| `Ctrl/Cmd + Shift + K` | Clear editor |
+| `Ctrl/Cmd + /` | Toggle table of contents |
+| `ESC` | Exit fullscreen |
+
+### Markdown Examples
+
+The editor supports all standard markdown plus:
+
+````markdown
+# Headers with Table of Contents
+
+## Math Equations
+Inline math: $E = mc^2$
+
+Block math:
+$$
+\sum_{i=1}^{n} x_i = x_1 + x_2 + ... + x_n
+$$
+
+## Task Lists
+- [x] Completed task
+- [ ] Pending task
+
+## Mermaid Diagrams
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do this]
+    B -->|No| D[Do that]
+```
+````
+
 
 ## 📁 Project Structure
 
 ```
-nuxt-shadcn-boilerplate/
+md-viewer/
 ├── app/
-│   ├── assets/css/          # Global styles and Tailwind CSS
-│   ├── components/          # Vue components
-│   │   └── ui/             # shadcn-vue components
-│   ├── composables/        # Vue composables
-│   ├── layouts/            # Nuxt layouts
-│   ├── pages/              # File-based routing
-│   └── utils/              # Utility functions
-├── public/                 # Static assets
-├── server/                 # Server-side code
-├── types/                  # TypeScript type definitions
-├── components.json         # shadcn-vue configuration
-├── nuxt.config.ts         # Nuxt configuration
-├── package.json           # Dependencies and scripts
-├── tailwind.config.js     # Tailwind CSS configuration
-├── tsconfig.json          # TypeScript configuration
+│   ├── components/      # Vue components
+│   │   ├── ui/         # shadcn-vue UI components
+│   │   └── ...         # Feature components
+│   ├── composables/    # Reusable logic
+│   ├── pages/          # Application pages
+│   ├── plugins/        # Nuxt plugins
+│   └── assets/         # CSS and static assets
+├── public/             # Static files
+├── server/             # Server API routes
+└── nuxt.config.ts      # Nuxt configuration
 ```
-
-## 🎨 Customization
-
-### Adding Components
-
-This boilerplate uses shadcn-vue components. To add new components:
-
-```bash
-# Add a new component (example: alert)
-bunx shadcn-vue@latest add alert
-```
-
-### Styling
-
-- Global styles are in `app/assets/css/main.css`
-- Component styles use Tailwind CSS classes
-- Dark/light mode is handled automatically
-
-### Configuration
-
-- **Nuxt config:** `nuxt.config.ts`
-- **Tailwind config:** Inline in `app/assets/css/main.css`
-- **TypeScript config:** `tsconfig.json`
-- **shadcn-vue config:** `components.json`
-
-
-## 🏗️ Building for Production
-
-```bash
-# Build for production
-bun run build
-
-# Preview production build
-bun run preview
-
-# Generate static site
-bun run generate
-```
-
-## 📦 Deployment
-
-This boilerplate can be deployed to various platforms:
-
-- **Vercel:** Connect your GitHub repository
-- **Netlify:** Deploy with git integration
-- **Cloudflare Pages:** Connect your repository
-- **Static hosting:** Use `bun run generate` for static sites
-
-Check out the [Nuxt deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more deployment options.
 
 ## 🤝 Contributing
 
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes using semantic commits (`git commit -m 'feat: add amazing feature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
+
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## 🙏 Acknowledgments
+
+- Built with [Nuxt 3](https://nuxt.com/)
+- UI components from [shadcn-vue](https://www.shadcn-vue.com/)
+- Markdown processing by [markdown-it](https://github.com/markdown-it/markdown-it)
+- Math rendering by [KaTeX](https://katex.org/)
+- Diagram support by [Mermaid](https://mermaid-js.github.io/)
+
 ---
 
-**Happy coding! 🚀**
+<p align="center">Made with ❤️ by <a href="https://github.com/LeonKohli">Leon Kohli</a></p>
