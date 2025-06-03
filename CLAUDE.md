@@ -13,6 +13,23 @@ bun run generate     # Generate static site
 bun run preview      # Preview production build
 ```
 
+## PWA Configuration
+
+This app is configured as a Progressive Web App using `@vite-pwa/nuxt`:
+
+- **Service Worker**: Auto-updates enabled for seamless updates
+- **Offline Support**: Basic offline functionality with fallback to homepage
+- **Icons**: 192x192 and 512x512 PWA icons in `/public`
+- **Caching**: Google Fonts cached for 1 year, all assets precached
+- **Installation**: Installable on desktop and mobile devices
+
+### Testing PWA Features
+
+1. Run `bun run dev` to test in development (PWA enabled in dev mode)
+2. Open Chrome DevTools → Application tab → Service Workers
+3. Check "Update on reload" for testing updates
+4. Test offline functionality by going offline in Network tab
+
 ## Architecture Overview
 
 This is a Nuxt 3-based Markdown editor with live preview, built using Vue 3 Composition API and TypeScript.

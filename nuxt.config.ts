@@ -11,6 +11,7 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@nuxtjs/seo',
     '@nuxt/scripts',
+    '@vite-pwa/nuxt',
   ],
   future: {
     compatibilityVersion: 4,
@@ -50,6 +51,107 @@ export default defineNuxtConfig({
           src: process.env.NUXT_PUBLIC_UMAMI_HOST ? `${process.env.NUXT_PUBLIC_UMAMI_HOST}/script.js` : 'https://cloud.umami.is/script.js'
         }
       }
+    }
+  },
+  // PWA Configuration
+  pwa: {
+    registerType: 'autoUpdate', // Automatically update service worker
+    manifest: {
+      name: 'Markdown Editor',
+      short_name: 'MD Editor',
+      description: 'A powerful online markdown editor with live preview, syntax highlighting, table of contents, and export capabilities',
+      theme_color: '#ffffff',
+      background_color: '#ffffff',
+      display: 'standalone',
+      scope: '/',
+      start_url: '/',
+      prefer_related_applications: false,
+      icons: [
+        {
+          src: 'pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: 'pwa-192x192.png',
+          sizes: '192x192',
+          type: 'image/png',
+          purpose: 'maskable'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'any'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          purpose: 'maskable'
+        }
+      ],
+      screenshots: [
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          form_factor: 'wide'
+        },
+        {
+          src: 'pwa-512x512.png',
+          sizes: '512x512',
+          type: 'image/png',
+          form_factor: 'narrow'
+        }
+      ],
+      display_override: ['window-controls-overlay', 'standalone', 'minimal-ui', 'browser']
+    },
+    workbox: {
+      navigateFallback: '/', // Fallback page for offline navigation
+      globPatterns: ['**/*.{js,css,html,png,svg,ico,woff,woff2}'], // Files to cache
+      maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit to handle large script files
+      runtimeCaching: [
+        {
+          urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'google-fonts-cache',
+            expiration: {
+              maxEntries: 10,
+              maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+            },
+            cacheableResponse: {
+              statuses: [0, 200]
+            }
+          }
+        },
+        {
+          urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
+          handler: 'CacheFirst',
+          options: {
+            cacheName: 'gstatic-fonts-cache',
+            expiration: {
+              maxEntries: 10,
+              maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+            },
+            cacheableResponse: {
+              statuses: [0, 200]
+            }
+          }
+        }
+      ]
+    },
+    client: {
+      installPrompt: true, // Show install prompt
+      periodicSyncForUpdates: 3600 // Check for updates every hour
+    },
+    devOptions: {
+      enabled: true, // Enable in development for testing
+      suppressWarnings: true,
+      navigateFallbackAllowlist: [/^\/$/],
+      type: 'module'
     }
   }
 })

@@ -1,4 +1,5 @@
 <template>
+  <VitePwaManifest />
   <NuxtLayout>
     <NuxtPage />
   </NuxtLayout>
@@ -6,10 +7,21 @@
 
 <script setup lang="ts">
 // Global app configuration
+const colorMode = useColorMode()
+
+// Compute theme color based on color mode
+const themeColor = computed(() => {
+  return colorMode.value === 'dark' ? '#0a0a0a' : '#ffffff'
+})
+
 useHead({
   titleTemplate: (titleChunk) => {
     return titleChunk ? `${titleChunk} - Markdown Preview` : 'Markdown Preview';
-  }
+  },
+  meta: [
+    { name: 'theme-color', content: themeColor },
+    { name: 'msapplication-TileColor', content: themeColor }
+  ]
 })
 
 // Define custom OG image for the Markdown Preview site
