@@ -120,7 +120,7 @@
                   size="sm" 
                   @click="toggleSync"
                   :class="{ 'bg-accent text-accent-foreground': syncEnabled }"
-                  class="h-7 px-2 text-xs"
+                  class="h-7 px-2 text-xs hidden md:flex"
                 >
                   <Icon :name="scrollSyncIcon" class="h-3 w-3 mr-1" />
                   <span>Sync</span>
