@@ -9,9 +9,9 @@
 // Global app configuration
 const colorMode = useColorMode()
 
-// Compute theme color based on color mode
+// Compute theme color based on color mode - using actual app colors
 const themeColor = computed(() => {
-  return colorMode.value === 'dark' ? '#0a0a0a' : '#ffffff'
+  return colorMode.value === 'dark' ? 'hsl(60 2.7027% 14.5098%)' : 'hsl(48 33.3333% 97.0588%)'
 })
 
 useHead({
