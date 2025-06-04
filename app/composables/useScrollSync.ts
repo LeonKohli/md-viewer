@@ -100,21 +100,28 @@ export function useScrollSync() {
     }, 100)
   }
   
+  // Track cleanup functions for dynamically attached listeners
+  const cleanupFns: Array<() => void> = []
+
   // Set up listeners
   const setupListeners = () => {
+    // Remove any existing listeners before adding new ones
+    cleanupFns.forEach(fn => fn())
+    cleanupFns.length = 0
+
     // Scroll listeners
     if (editorElement.value) {
-      useEventListener(editorElement.value, 'scroll', handleEditorScroll, { passive: true })
-      useEventListener(editorElement.value, 'mousedown', handleMouseDown)
+      cleanupFns.push(useEventListener(editorElement.value, 'scroll', handleEditorScroll, { passive: true }))
+      cleanupFns.push(useEventListener(editorElement.value, 'mousedown', handleMouseDown))
     }
-    
+
     if (previewElement.value) {
-      useEventListener(previewElement.value, 'scroll', handlePreviewScroll, { passive: true })
-      useEventListener(previewElement.value, 'mousedown', handleMouseDown)
+      cleanupFns.push(useEventListener(previewElement.value, 'scroll', handlePreviewScroll, { passive: true }))
+      cleanupFns.push(useEventListener(previewElement.value, 'mousedown', handleMouseDown))
     }
-    
+
     // Global mouse up listener
-    useEventListener(document, 'mouseup', handleMouseUp)
+    cleanupFns.push(useEventListener(document, 'mouseup', handleMouseUp))
   }
   
   // Watch for element changes
@@ -123,6 +130,11 @@ export function useScrollSync() {
       setupListeners()
     })
   }, { immediate: true })
+
+  // Clean up listeners on unmount
+  onUnmounted(() => {
+    cleanupFns.forEach(fn => fn())
+  })
   
   // Set elements
   const setEditorElement = (element: HTMLTextAreaElement | null) => {

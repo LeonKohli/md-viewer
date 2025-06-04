@@ -55,6 +55,7 @@
     "@nuxt/scripts": "^0.11.8",
     "@types/markdown-it": "^14.1.2",
     "@types/markdown-it-anchor": "^7.0.0",
-    "@vite-pwa/nuxt": "^1.0.3"
+    "@vite-pwa/nuxt": "^1.0.3",
+    "vue-tsc": "2.2.10"
   }
 }
