@@ -97,6 +97,7 @@ md.use(markdownItDeflist)
 // 3. Task lists
 md.use(markdownItTaskLists, {
   enabled: true,
+  label: true,
   labelAfter: true
 })
 
