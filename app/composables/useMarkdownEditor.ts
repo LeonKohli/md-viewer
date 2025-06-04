@@ -2,6 +2,11 @@ import type { MarkdownStats, CursorPosition } from '~/types'
 import { DEFAULT_CONFIG } from '~/constants'
 import { watchDebounced } from '@vueuse/core'
 
+interface TaskItem {
+  line: number
+  checked: boolean
+}
+
 export function useMarkdownEditor() {
   const { $md } = useNuxtApp()
   
@@ -12,6 +17,7 @@ export function useMarkdownEditor() {
   const markdownInput = ref('')
   const renderedHtml = ref('')
   const textareaRef = ref<{ textareaElement?: HTMLTextAreaElement }>()
+  const taskItems = ref<TaskItem[]>([])
   
   // Computed ref to the actual textarea element
   const textareaElement = computed(() => textareaRef.value?.textareaElement)
@@ -125,13 +131,38 @@ export function useMarkdownEditor() {
       end: textarea.selectionEnd
     }
   }
+
+  const parseTaskItems = (content: string): TaskItem[] => {
+    const lines = content.split('\n')
+    const tasks: TaskItem[] = []
+    const regex = /^\s*(?:[-*+]|\d+[.)])\s+\[([ xX])\]\s+/
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i] || ''
+      const match = line.match(regex)
+      if (match && match[1]) {
+        tasks.push({ line: i, checked: match[1].toLowerCase() === 'x' })
+      }
+    }
+    return tasks
+  }
+
+  const addCheckboxIndexes = (html: string): string => {
+    let idx = 0
+    return html.replace(/class="task-list-item-checkbox"/g, () => {
+      return `class="task-list-item-checkbox" data-task-index="${idx++}"`
+    })
+  }
   
   // Parse markdown using the Nuxt plugin
   const parseMarkdown = (content: string) => {
     if (content.trim()) {
-      renderedHtml.value = $md(content)
+      taskItems.value = parseTaskItems(content)
+      let html = $md(content)
+      html = addCheckboxIndexes(html)
+      renderedHtml.value = html
     } else {
       renderedHtml.value = ''
+      taskItems.value = []
     }
   }
   
@@ -154,6 +185,17 @@ export function useMarkdownEditor() {
   
   const togglePreview = () => {
     showPreview.value = !showPreview.value
+  }
+
+  const toggleTask = (index: number, checked: boolean) => {
+    const lines = markdownInput.value.split('\n')
+    const task = taskItems.value[index]
+    if (!task) return
+
+    const lineIndex = task.line
+    const line = lines[lineIndex] || ''
+    lines[lineIndex] = line.replace(/\[[ xX]\]/, `[${checked ? 'x' : ' '}]`)
+    markdownInput.value = lines.join('\n')
   }
   
   // Event handlers for cursor tracking
@@ -211,6 +253,8 @@ export function useMarkdownEditor() {
     // Auto-save actions
     saveNow,
     recoverContent,
-    discardRecovery
+    discardRecovery,
+    toggleTask,
+    taskItems
   }
-} 
+}

@@ -334,7 +334,8 @@ const {
   recoverableContent,
   saveNow,
   recoverContent,
-  discardRecovery
+  discardRecovery,
+  toggleTask
 } = useMarkdownEditor()
 
 const { editorWidth, previewWidth, isAtEdge, dragHandleRef, isDragging, resetToCenter } = useResizablePanels()
@@ -421,6 +422,7 @@ const updateActiveHeadingDebounced = useDebounceFn(() => {
 
 // Set up scroll listener when preview element is ready
 let scrollListener: (() => void) | null = null
+let checkboxListener: ((e: Event) => void) | null = null
 
 // Use watchEffect for automatic cleanup
 const stopWatchingScroll = watch(previewContainerRef, (newContainer, oldContainer) => {
@@ -429,11 +431,25 @@ const stopWatchingScroll = watch(previewContainerRef, (newContainer, oldContaine
     oldContainer.removeEventListener('scroll', scrollListener)
     scrollListener = null
   }
+  if (oldContainer && checkboxListener) {
+    oldContainer.removeEventListener('change', checkboxListener)
+    checkboxListener = null
+  }
   
   // Add new listener
   if (newContainer) {
     scrollListener = () => updateActiveHeadingDebounced()
     newContainer.addEventListener('scroll', scrollListener, { passive: true })
+    checkboxListener = (e: Event) => {
+      const target = e.target as HTMLInputElement
+      if (target && target.classList.contains('task-list-item-checkbox')) {
+        const idx = parseInt(target.dataset.taskIndex || '')
+        if (!Number.isNaN(idx)) {
+          toggleTask(idx, target.checked)
+        }
+      }
+    }
+    newContainer.addEventListener('change', checkboxListener)
   }
 }, { immediate: true })
 
@@ -446,6 +462,10 @@ onUnmounted(() => {
   if (previewContainerRef.value && scrollListener) {
     previewContainerRef.value.removeEventListener('scroll', scrollListener)
     scrollListener = null
+  }
+  if (previewContainerRef.value && checkboxListener) {
+    previewContainerRef.value.removeEventListener('change', checkboxListener)
+    checkboxListener = null
   }
 })
 
