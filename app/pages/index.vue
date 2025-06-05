@@ -291,6 +291,7 @@
       :sync-enabled="syncEnabled"
       :scroll-sync-icon="scrollSyncIcon"
       :has-content="!!markdownInput"
+      :vim-mode="vimMode"
     />
   </div>
 </template>
@@ -335,7 +336,8 @@ const {
   saveNow,
   recoverContent,
   discardRecovery,
-  toggleTask
+  toggleTask,
+  vimMode
 } = useMarkdownEditor()
 
 const { editorWidth, previewWidth, isAtEdge, dragHandleRef, isDragging, resetToCenter } = useResizablePanels()

@@ -1,6 +1,7 @@
 import type { MarkdownStats, CursorPosition } from '~/types'
 import { DEFAULT_CONFIG } from '~/constants'
 import { watchDebounced } from '@vueuse/core'
+import { useVimMode } from '~/composables/useVimMode'
 
 interface TaskItem {
   line: number
@@ -220,6 +221,9 @@ export function useMarkdownEditor() {
   useEventListener(textareaElement, 'keyup', handleTextareaInteraction)
   useEventListener(textareaElement, 'select', handleTextareaInteraction)
   useEventListener(textareaElement, 'mouseup', handleTextareaInteraction)
+
+  // Enable Vim-style motions
+  const { mode: vimMode } = useVimMode(textareaElement)
   
   // Initialize content
   if (globalMarkdownContent.value) {
@@ -249,6 +253,8 @@ export function useMarkdownEditor() {
     toggleWordWrap,
     togglePreview,
     updateCursorPosition,
+
+    vimMode,
     
     // Auto-save actions
     saveNow,

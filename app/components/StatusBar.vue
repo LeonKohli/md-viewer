@@ -54,6 +54,7 @@
         <span class="hidden xs:inline">Ln </span>{{ cursorPosition.line }}<span class="hidden xs:inline">,</span>
         <span class="xs:hidden">:</span>
         <span class="hidden xs:inline">Col </span>{{ cursorPosition.column }}
+        <span v-if="vimMode" class="ml-2 capitalize">{{ vimMode }}</span>
       </span>
     </div>
   </div>
@@ -68,6 +69,7 @@ interface Props {
   syncEnabled: boolean
   scrollSyncIcon: string
   hasContent: boolean
+  vimMode?: 'insert' | 'normal' | 'visual'
 }
 
 defineProps<Props>()
