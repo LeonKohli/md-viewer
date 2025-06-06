@@ -49,19 +49,28 @@
     </div>
     
     <!-- Main Content -->
-    <div class="flex flex-1 overflow-hidden relative">
+    <div 
+      class="flex-1 overflow-hidden relative"
+      :class="[
+        'flex',
+        splitMode === 'horizontal' ? 'flex-row' : 'flex-col'
+      ]"
+    >
       <!-- Editor Panel -->
       <div 
-        class="flex flex-col"
+        class="flex flex-col overflow-hidden"
         :class="[
-          'md:border-r md:border-border',
+          splitMode === 'horizontal' ? 'md:border-r md:border-border' : 'md:border-b md:border-border',
           // On mobile, show based on active tab
           activeTab === 'editor' ? 'flex' : 'hidden',
           // On desktop, use resizable panels
           'md:flex'
         ]"
-        :style="{ width: isDesktop ? `${isFocusMode ? 0 : editorWidth}%` : '100%' }"
-        v-show="isDesktop ? (!isFocusMode && editorWidth > 5) : (activeTab === 'editor')"
+        :style="isDesktop ? (splitMode === 'horizontal' 
+          ? { width: `${isFocusMode ? 0 : editorSize}%` }
+          : { height: `${isFocusMode ? 0 : editorSize}%` }
+        ) : { width: '100%' }"
+        v-show="isDesktop ? (!isFocusMode && editorSize > 5) : (activeTab === 'editor')"
       >
         <!-- Editor Header -->
         <div class="px-3 md:px-4 py-1.5 border-b border-border bg-muted/50 text-sm font-medium flex items-center justify-between flex-shrink-0">
@@ -183,16 +192,30 @@
         v-show="isDesktop && !isFocusMode"
         class="relative flex-shrink-0 group hidden md:block"
         :class="[
-          isAtEdge ? 'w-2 bg-border/50 hover:bg-accent' : 'w-1 bg-border hover:bg-accent',
+          splitMode === 'horizontal' ? [
+            isAtEdge ? 'w-2 bg-border/50 hover:bg-accent' : 'w-1 bg-border hover:bg-accent'
+          ] : [
+            isAtEdge ? 'h-2 bg-border/50 hover:bg-accent' : 'h-1 bg-border hover:bg-accent'
+          ],
           isDragging ? 'bg-accent' : ''
         ]"
         @dblclick="resetToCenter"
         :title="isAtEdge ? 'Double-click to center panels' : 'Drag to resize panels'"
-        style="cursor: col-resize;"
+        :style="{ cursor: splitMode === 'horizontal' ? 'col-resize' : 'row-resize' }"
       >
         <!-- Visual handle indicator -->
-        <div class="absolute inset-y-0 -left-1 -right-1 bg-transparent group-hover:bg-accent/20 dark:group-hover:bg-accent/10 transition-colors">
-          <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-1 h-8 bg-muted-foreground/30 dark:bg-muted-foreground/20 rounded-full group-hover:bg-accent-foreground/60 dark:group-hover:bg-accent-foreground/40 transition-colors"></div>
+        <div 
+          :class="[
+            'absolute bg-transparent group-hover:bg-accent/20 dark:group-hover:bg-accent/10 transition-colors',
+            splitMode === 'horizontal' ? 'inset-y-0 -left-1 -right-1' : 'inset-x-0 -top-1 -bottom-1'
+          ]"
+        >
+          <div 
+            :class="[
+              'absolute transform -translate-x-1/2 -translate-y-1/2 bg-muted-foreground/30 dark:bg-muted-foreground/20 rounded-full group-hover:bg-accent-foreground/60 dark:group-hover:bg-accent-foreground/40 transition-colors',
+              splitMode === 'horizontal' ? 'top-1/2 left-1/2 w-1 h-8' : 'top-1/2 left-1/2 w-8 h-1'
+            ]"
+          ></div>
         </div>
         
         <!-- Reset hint when at edges -->
@@ -208,14 +231,17 @@
 
       <!-- Preview Panel -->
       <div 
-        class="flex flex-col"
+        class="flex flex-col overflow-hidden"
         :class="[
           // On mobile, show based on active tab
           activeTab === 'preview' ? 'flex' : 'hidden',
           // On desktop, always show unless in focus mode
           'md:flex'
         ]"
-        :style="{ width: isDesktop ? `${isFocusMode ? 100 : previewWidth}%` : '100%' }"
+        :style="isDesktop ? (splitMode === 'horizontal' 
+          ? { width: `${isFocusMode ? 100 : previewSize}%` }
+          : { height: `${isFocusMode ? 100 : previewSize}%` }
+        ) : { width: '100%' }"
         v-show="isDesktop ? true : (activeTab === 'preview')"
       >
         <!-- Preview Header -->
@@ -236,6 +262,30 @@
               <Icon :name="isFocusMode ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="h-3 w-3 mr-1" />
               <span>{{ isFocusMode ? 'Exit' : 'Focus' }}</span>
             </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button 
+                    variant="ghost"
+                    size="sm" 
+                    @click="toggleSplitMode"
+                    class="h-7 px-2 text-xs hidden lg:inline-flex items-center gap-1"
+                    :disabled="isMobile"
+                  >
+                    <Icon 
+                      :name="splitMode === 'horizontal' ? 'lucide:rows-2' : 'lucide:columns-2'" 
+                      class="h-3 w-3" 
+                    />
+                    <span class="hidden xl:inline text-xs">
+                      {{ splitMode === 'horizontal' ? 'Vertical' : 'Horizontal' }}
+                    </span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{{ splitMode === 'horizontal' ? 'Switch to vertical split' : 'Switch to horizontal split' }} ({{ splitMode === 'horizontal' ? 'Ctrl+Alt+V' : 'Ctrl+Alt+H' }})</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <!-- Mobile editor toggle button removed - using tabs instead -->
           </div>
         </div>
@@ -338,7 +388,17 @@ const {
   toggleTask
 } = useMarkdownEditor()
 
-const { editorWidth, previewWidth, isAtEdge, dragHandleRef, isDragging, resetToCenter } = useResizablePanels()
+const { 
+  editorSize, 
+  previewSize,
+  splitMode,
+  toggleSplitMode,
+  isAtEdge, 
+  dragHandleRef, 
+  isDragging, 
+  resetToCenter,
+  isMobile: isMobileFromPanel
+} = useResizablePanels()
 
 const { 
   syncEnabled, 
@@ -480,23 +540,9 @@ const globalTocHeadings = useState<TocItem[]>('tocHeadings', () => [])
 const isFocusMode = ref(false)
 const activeTab = ref<'editor' | 'preview'>('editor')
 
-// Responsive helpers
-const isDesktop = ref(true)
-const isMobile = computed(() => !isDesktop.value)
-
-// Set up responsive detection
-const updateBreakpoint = () => {
-  isDesktop.value = window.innerWidth >= 768 // md breakpoint
-}
-
-onMounted(() => {
-  updateBreakpoint()
-  window.addEventListener('resize', updateBreakpoint)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', updateBreakpoint)
-})
+// Responsive helpers - use values from composable
+const isMobile = isMobileFromPanel
+const isDesktop = computed(() => !isMobile.value)
 
 // Toggle focus mode
 const toggleFocusMode = () => {
@@ -578,6 +624,20 @@ const handleKeydown = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault()
     saveNow()
+  }
+  
+  // Toggle split mode: Ctrl/Cmd + Alt + V (vertical) or H (horizontal)
+  if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'v' || e.key === 'V')) {
+    e.preventDefault()
+    if (splitMode.value === 'horizontal' && !isMobile.value) {
+      toggleSplitMode()
+    }
+  }
+  if ((e.ctrlKey || e.metaKey) && e.altKey && (e.key === 'h' || e.key === 'H')) {
+    e.preventDefault()
+    if (splitMode.value === 'vertical' && !isMobile.value) {
+      toggleSplitMode()
+    }
   }
   
   // Detect undo/redo for immediate save
