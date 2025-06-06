@@ -112,6 +112,8 @@ export default defineNuxtConfig({
       navigateFallback: '/', // Fallback page for offline navigation
       globPatterns: ['**/*.{js,css,html,png,svg,ico,woff,woff2}'], // Files to cache
       maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit to handle large script files
+      cleanupOutdatedCaches: true, // Remove old caches automatically
+      clientsClaim: true, // Take control of pages immediately on activation
       runtimeCaching: [
         {
           urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
@@ -153,5 +155,11 @@ export default defineNuxtConfig({
       navigateFallbackAllowlist: [/^\/$/],
       type: 'module'
     }
-  }
+  },
+  // Prerender the homepage for offline support
+  nitro: {
+    prerender: {
+      routes: ['/'],
+    },
+  },
 })
