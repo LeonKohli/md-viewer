@@ -24,14 +24,15 @@ export function useMarkdownEditor() {
   
   // Set up auto-save
   const { 
-    setupAutoSave, 
+    setupAutoSave,
     getRecoverableContent,
     saveStatus,
     saveError,
     lastSaveTimeAgo,
     hasUnsavedChanges,
     saveNow,
-    saveStats
+    saveStats,
+    clearSavedContent
   } = useAutoSave()
   
   // Recovery state
@@ -64,7 +65,6 @@ export function useMarkdownEditor() {
   const discardRecovery = () => {
     showRecoveryPrompt.value = false
     recoverableContent.value = null
-    const { clearSavedContent } = useAutoSave()
     clearSavedContent()
   }
   
@@ -254,6 +254,7 @@ export function useMarkdownEditor() {
     saveNow,
     recoverContent,
     discardRecovery,
+    clearSavedContent,
     toggleTask,
     taskItems
   }

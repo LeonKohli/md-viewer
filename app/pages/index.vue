@@ -385,6 +385,7 @@ const {
   saveNow,
   recoverContent,
   discardRecovery,
+  clearSavedContent,
   toggleTask
 } = useMarkdownEditor()
 
@@ -458,7 +459,6 @@ const clearEditor = () => {
   // Clear saved content after a delay to prevent recovery prompt
   setTimeout(() => {
     if (!markdownInput.value && !showClearUndo.value) {
-      const { clearSavedContent } = useAutoSave()
       clearSavedContent()
     }
   }, 15000) // 15 seconds - longer than undo timeout
