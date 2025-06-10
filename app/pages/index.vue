@@ -406,7 +406,6 @@ const {
   toggleSync,
   scrollSyncIcon,
   scrollSyncTooltip,
-  scrollSyncStatus,
   setEditorElement,
   setPreviewElement,
   scrollToElement
@@ -427,12 +426,15 @@ const {
 const navigateToHeading = async (id: string) => {
   await nextTick()
   
-  const element = document.getElementById(id)
-  if (element) {
-    setActiveHeading(id)
-    scrollToElement(element)
-    // Update URL hash without triggering browser scroll
-    history.replaceState(null, '', `#${id}`)
+  // Use the preview container ref instead of document
+  if (previewContainerRef.value) {
+    const element = previewContainerRef.value.querySelector(`#${CSS.escape(id)}`)
+    if (element && element instanceof HTMLElement) {
+      setActiveHeading(id)
+      scrollToElement(element)
+      // Update URL hash without triggering browser scroll
+      history.replaceState(null, '', `#${id}`)
+    }
   }
 }
 
@@ -530,7 +532,6 @@ onUnmounted(() => {
 })
 
 // Global state
-const isFullscreen = useState('isFullscreen', () => false)
 const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
 const showToc = useState('showToc', () => false)
 const globalRenderedHtml = useState<string>('renderedHtml', () => '')
@@ -584,14 +585,26 @@ watchEffect(() => {
 // Get mermaid render function from plugin
 const { $renderMermaid } = useNuxtApp()
 
+// Track previous mermaid content to avoid unnecessary re-renders
+let previousMermaidContent = ''
+
 // Update active heading when content changes
 watch(renderedHtml, () => {
   // Update active heading after content renders
   nextTick(() => {
     updateActiveHeadingDebounced()
-    // Render Mermaid diagrams if present
+    
+    // Only render Mermaid diagrams if mermaid content has changed
     if ($renderMermaid) {
-      $renderMermaid()
+      // Extract mermaid content from the rendered HTML
+      const mermaidMatches = renderedHtml.value.match(/data-mermaid-src="([^"]+)"/g)
+      const currentMermaidContent = mermaidMatches ? mermaidMatches.join('') : ''
+      
+      // Only re-render if mermaid content actually changed
+      if (currentMermaidContent !== previousMermaidContent) {
+        $renderMermaid()
+        previousMermaidContent = currentMermaidContent
+      }
     }
   })
   // Update global rendered HTML
