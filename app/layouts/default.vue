@@ -13,6 +13,7 @@
       @load-sample="handleLoadSample"
       @reset-panels="handleResetPanels"
       @toggle-toc="handleToggleToc"
+      @open-share="handleOpenShare"
       class="flex-shrink-0"
     />
 
@@ -30,6 +31,7 @@ const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
 const showToc = useState('showToc', () => false)
 const renderedHtml = useState<string>('renderedHtml', () => '')
 const tocHeadings = useState<any[]>('tocHeadings', () => [])
+const showShareDialog = useState('showShareDialog', () => false)
 
 // Event handlers
 const handleClearContent = () => {
@@ -48,12 +50,22 @@ const handleToggleToc = () => {
   showToc.value = !showToc.value
 }
 
+const handleOpenShare = () => {
+  showShareDialog.value = true
+}
+
 // Add keyboard shortcuts
 const handleKeydown = (e: KeyboardEvent) => {
   // TOC shortcut (Ctrl/Cmd + /)
   if ((e.ctrlKey || e.metaKey) && e.key === '/') {
     e.preventDefault()
     handleToggleToc()
+  }
+  
+  // Share shortcut (Ctrl/Cmd + Shift + S)
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+    e.preventDefault()
+    handleOpenShare()
   }
 }
 

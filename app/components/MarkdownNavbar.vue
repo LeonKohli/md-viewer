@@ -34,6 +34,18 @@
           Reset
         </Button>
         
+        <!-- Share button -->
+        <Button 
+          variant="ghost" 
+          size="sm"
+          @click="openShareDialog"
+          :title="`Share document (${isMac ? 'Cmd' : 'Ctrl'}+Shift+S)`"
+          class="hidden sm:flex"
+        >
+          <Icon name="lucide:share-2" class="w-4 h-4 mr-1.5" />
+          Share
+        </Button>
+        
         <!-- Copy button -->
         <Button 
           variant="ghost" 
@@ -136,6 +148,10 @@
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-48">
+            <DropdownMenuItem @click="openShareDialog">
+              <Icon name="lucide:share-2" class="w-4 h-4 mr-2" />
+              Share
+            </DropdownMenuItem>
             <DropdownMenuItem @click="copyMarkdown">
               <Icon name="lucide:copy" class="w-4 h-4 mr-2" />
               Copy
@@ -350,6 +366,13 @@ const resetPanels = () => {
  */
 const toggleToc = () => {
   emit('toggleToc')
+}
+
+/**
+ * Open the share dialog.
+ */
+const openShareDialog = () => {
+  emit('openShare')
 }
 
 // Remove auto-loading of sample content

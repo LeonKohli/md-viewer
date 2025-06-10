@@ -43,6 +43,7 @@ export interface MarkdownNavbarEmits {
   (e: 'loadSample'): void
   (e: 'resetPanels'): void
   (e: 'toggleToc'): void
+  (e: 'openShare'): void
 }
 
 // Export options

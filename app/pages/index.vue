@@ -8,6 +8,32 @@
       @discard="discardRecovery"
     />
     
+    <!-- Share Dialog -->
+    <ShareDialog
+      v-model="showShareDialog"
+      :content="markdownInput"
+      :title="documentTitle"
+    />
+    
+    <!-- Shared Document Banner -->
+    <div 
+      v-if="isViewingSharedDocument"
+      class="bg-primary/10 border-b border-primary/20 px-4 py-2 flex items-center justify-between"
+    >
+      <div class="flex items-center gap-2 text-sm">
+        <Icon name="lucide:eye" class="w-4 h-4" />
+        <span>Viewing shared document{{ sharedDocumentTitle ? ': ' + sharedDocumentTitle : '' }}</span>
+      </div>
+      <Button
+        size="sm"
+        variant="outline"
+        @click="makeEditableCopy"
+      >
+        <Icon name="lucide:edit" class="w-4 h-4 mr-1.5" />
+        Make a Copy
+      </Button>
+    </div>
+    
     <!-- Mobile Tab Navigation -->
     <div class="flex md:hidden border-b border-border bg-background">
       <button
@@ -88,7 +114,7 @@
               leave-to-class="opacity-0 scale-95"
             >
               <Button 
-                v-if="markdownInput.length > 0"
+                v-if="markdownInput.length > 0 && !isViewingSharedDocument"
                 variant="ghost"
                 size="sm"
                 @click="clearEditor"
@@ -164,6 +190,7 @@
               'p-3 md:p-4',
               wordWrap ? '' : 'whitespace-nowrap overflow-x-auto'
             ]"
+            :readonly="isViewingSharedDocument"
             spellcheck="false"
             @input="onInputChange"
             @paste="handlePaste"
@@ -347,6 +374,7 @@
 
 <script setup lang="ts">
 import type { TocItem } from '~/composables/useTableOfContents'
+import ShareDialog from '~/components/ShareDialog.vue'
 
 // SEO Meta
 useSeoMeta({
@@ -410,6 +438,12 @@ const {
   setPreviewElement,
   scrollToElement
 } = useScrollSync()
+
+const {
+  isSharedDocument,
+  parseSharedDocument,
+  makeEditableCopy: makeEditableCopyFromShared
+} = useContentSharing()
 
 // Preview container ref
 const previewContainerRef = ref<HTMLElement>()
@@ -536,10 +570,14 @@ const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
 const showToc = useState('showToc', () => false)
 const globalRenderedHtml = useState<string>('renderedHtml', () => '')
 const globalTocHeadings = useState<TocItem[]>('tocHeadings', () => [])
+const showShareDialog = useState('showShareDialog', () => false)
 
 // Local state
 const isFocusMode = ref(false)
 const activeTab = ref<'editor' | 'preview'>('editor')
+const documentTitle = ref('')
+const isViewingSharedDocument = ref(false)
+const sharedDocumentTitle = ref('')
 
 // Responsive helpers - use values from composable
 const isMobile = isMobileFromPanel
@@ -664,9 +702,41 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
+// Handle shared documents
+const handleSharedDocument = () => {
+  if (isSharedDocument.value) {
+    const sharedDoc = parseSharedDocument()
+    if (sharedDoc) {
+      markdownInput.value = sharedDoc.content
+      sharedDocumentTitle.value = sharedDoc.title || ''
+      isViewingSharedDocument.value = true
+      // Switch to preview tab on mobile
+      if (isMobile.value) {
+        activeTab.value = 'preview'
+      }
+    }
+  }
+}
+
+// Make editable copy of shared document
+const makeEditableCopy = () => {
+  const sharedDoc = parseSharedDocument()
+  if (sharedDoc) {
+    const content = makeEditableCopyFromShared(sharedDoc)
+    markdownInput.value = content
+    isViewingSharedDocument.value = false
+    sharedDocumentTitle.value = ''
+    // Switch to editor tab
+    activeTab.value = 'editor'
+  }
+}
+
 // Set up keyboard listeners
 onMounted(() => {
   window.addEventListener('keydown', handleKeydown)
+  
+  // Check for shared document
+  handleSharedDocument()
 })
 
 // Clean up keyboard listener
