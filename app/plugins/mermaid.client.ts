@@ -66,11 +66,17 @@ export default defineNuxtPlugin(() => {
     // If mermaid isn't loaded yet, trigger loading
     if (!isInitialized) {
       await load()
-      // Wait for initialization
-      await new Promise(resolve => {
+      // Wait for initialization with timeout to prevent memory leak
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          clearInterval(checkInterval)
+          reject(new Error('Mermaid initialization timeout'))
+        }, 5000) // 5 second timeout
+        
         const checkInterval = setInterval(() => {
           if (isInitialized && mermaidInstance) {
             clearInterval(checkInterval)
+            clearTimeout(timeout)
             resolve(true)
           }
         }, 50)
