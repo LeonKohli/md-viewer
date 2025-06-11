@@ -154,4 +154,14 @@ export default defineNuxtConfig({
       routes: ['/'],
     },
   },
+  // Security configuration
+  security: {
+    headers: {
+      contentSecurityPolicy: {
+        'img-src': ["'self'", "data:", "https:", "http:"],
+        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://um.web.leonkohli.de", "https://static.cloudflareinsights.com"],
+        'connect-src': ["'self'", "https://um.web.leonkohli.de", "https://static.cloudflareinsights.com"]
+      }
+    }
+  }
 })
