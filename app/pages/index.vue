@@ -703,10 +703,13 @@ const handleKeydown = (e: KeyboardEvent) => {
 }
 
 // Handle shared documents
-const handleSharedDocument = () => {
+const handleSharedDocument = async () => {
   if (isSharedDocument.value) {
-    const sharedDoc = parseSharedDocument()
+    const sharedDoc = await parseSharedDocument()
     if (sharedDoc) {
+      // Clear any saved content to prevent recovery prompt confusion
+      clearSavedContent()
+      
       markdownInput.value = sharedDoc.content
       sharedDocumentTitle.value = sharedDoc.title || ''
       isViewingSharedDocument.value = true
@@ -719,8 +722,8 @@ const handleSharedDocument = () => {
 }
 
 // Make editable copy of shared document
-const makeEditableCopy = () => {
-  const sharedDoc = parseSharedDocument()
+const makeEditableCopy = async () => {
+  const sharedDoc = await parseSharedDocument()
   if (sharedDoc) {
     const content = makeEditableCopyFromShared(sharedDoc)
     markdownInput.value = content
@@ -732,11 +735,11 @@ const makeEditableCopy = () => {
 }
 
 // Set up keyboard listeners
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('keydown', handleKeydown)
   
   // Check for shared document
-  handleSharedDocument()
+  await handleSharedDocument()
 })
 
 // Clean up keyboard listener

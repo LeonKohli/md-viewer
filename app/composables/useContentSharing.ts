@@ -1,5 +1,10 @@
 import QRCode from 'qrcode'
-import { compressContent, decompressContent, canShareViaURL } from '~/utils/compression'
+import { 
+  compressContent, 
+  decompressContent, 
+  canShareViaURL,
+  COMPRESSION_THRESHOLDS
+} from '~/utils/compression'
 
 export interface ShareOptions {
   title?: string
@@ -25,16 +30,19 @@ export function useContentSharing() {
   })
   
   // Generate a shareable URL from content
-  const generateShareURL = (content: string, options: ShareOptions = {}): string => {
+  const generateShareURL = async (
+    content: string, 
+    options: ShareOptions = {}
+  ): Promise<string> => {
     const document: SharedDocument = {
       content,
       title: options.title,
       createdAt: new Date().toISOString(),
       readOnly: options.readOnly ?? true,
-      version: 1
+      version: 2 // Version 2 uses gzip compression
     }
     
-    const compressed = compressContent(JSON.stringify(document))
+    const compressed = await compressContent(JSON.stringify(document))
     const baseURL = window.location.origin + window.location.pathname
     return `${baseURL}#share/${compressed}`
   }
@@ -57,12 +65,13 @@ export function useContentSharing() {
   }
   
   // Parse shared document from URL
-  const parseSharedDocument = (): SharedDocument | null => {
+  const parseSharedDocument = async (): Promise<SharedDocument | null> => {
     if (!isSharedDocument.value) return null
     
     try {
       const compressed = route.hash.slice('#share/'.length)
-      const decompressed = decompressContent(compressed)
+      const decompressed = await decompressContent(compressed)
+      
       if (!decompressed) return null
       
       return JSON.parse(decompressed)
@@ -138,6 +147,21 @@ export function useContentSharing() {
     return document.content
   }
   
+  // Get compression statistics
+  const getCompressionStats = async (content: string) => {
+    const startTime = performance.now()
+    const compressed = await compressContent(content)
+    const duration = performance.now() - startTime
+    
+    return {
+      originalSize: new Blob([content]).size,
+      compressedSize: new Blob([compressed]).size,
+      ratio: Math.round((1 - new Blob([compressed]).size / new Blob([content]).size) * 100),
+      duration: Math.round(duration),
+      canShare: canShareViaURL(content)
+    }
+  }
+  
   return {
     isSharedDocument,
     generateShareURL,
@@ -148,6 +172,8 @@ export function useContentSharing() {
     trackShare,
     getRecentShares,
     makeEditableCopy,
-    canShareViaURL
+    canShareViaURL,
+    getCompressionStats,
+    COMPRESSION_THRESHOLDS
   }
 }
