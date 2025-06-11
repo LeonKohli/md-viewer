@@ -41,8 +41,12 @@ export function useMarkdownEditor() {
   
   // Check for recoverable content on mount
   onMounted(() => {
-    // Only check for recoverable content, don't auto-load
-    if (!globalMarkdownContent.value) {
+    // Skip recovery check if we're loading a shared document
+    const route = useRoute()
+    const isSharedDocument = route.hash.startsWith('#share/')
+    
+    // Only check for recoverable content if not loading a shared document
+    if (!globalMarkdownContent.value && !isSharedDocument) {
       const recoverable = getRecoverableContent()
       if (recoverable) {
         recoverableContent.value = recoverable
