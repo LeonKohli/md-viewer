@@ -1,20 +1,15 @@
 import QRCode from 'qrcode'
 import { 
-  compressContent as compressAdvanced, 
-  decompressContent as decompressAdvanced, 
-  canShareViaURL as canShareAdvanced,
-  compressInWorker,
-  COMPRESSION_THRESHOLDS,
-  type CompressionProgress
-} from '~/utils/compression-advanced'
-// Keep old compression for backward compatibility
-import { compressContentLZ as compressLZ, decompressContentLZ as decompressLZ } from '~/utils/compression'
+  compressContent, 
+  decompressContent, 
+  canShareViaURL,
+  COMPRESSION_THRESHOLDS
+} from '~/utils/compression'
 
 export interface ShareOptions {
   title?: string
   readOnly?: boolean
   expiresAt?: Date
-  onProgress?: (progress: CompressionProgress) => void
 }
 
 export interface SharedDocument {
@@ -23,7 +18,6 @@ export interface SharedDocument {
   createdAt: string
   readOnly: boolean
   version: number
-  compressionMethod?: 'gzip' | 'lz' // Track compression method
 }
 
 export function useContentSharing() {
@@ -45,40 +39,10 @@ export function useContentSharing() {
       title: options.title,
       createdAt: new Date().toISOString(),
       readOnly: options.readOnly ?? true,
-      version: 2, // Version 2 uses new compression
-      compressionMethod: 'gzip'
+      version: 2 // Version 2 uses gzip compression
     }
     
-    let compressed: string
-    
-    // Choose compression method based on content size
-    if (content.length > COMPRESSION_THRESHOLDS.SYNC_MAX_SIZE) {
-      // Use Web Worker for large documents
-      compressed = await compressInWorker(
-        JSON.stringify(document),
-        options.onProgress
-      )
-    } else {
-      // Use synchronous compression for small documents
-      compressed = await compressAdvanced(JSON.stringify(document), { async: false })
-    }
-    
-    const baseURL = window.location.origin + window.location.pathname
-    return `${baseURL}#share/${compressed}`
-  }
-  
-  // Generate a shareable URL synchronously (for backward compatibility)
-  const generateShareURLSync = (content: string, options: ShareOptions = {}): string => {
-    const document: SharedDocument = {
-      content,
-      title: options.title,
-      createdAt: new Date().toISOString(),
-      readOnly: options.readOnly ?? true,
-      version: 1,
-      compressionMethod: 'lz'
-    }
-    
-    const compressed = compressLZ(JSON.stringify(document))
+    const compressed = await compressContent(JSON.stringify(document))
     const baseURL = window.location.origin + window.location.pathname
     return `${baseURL}#share/${compressed}`
   }
@@ -106,49 +70,11 @@ export function useContentSharing() {
     
     try {
       const compressed = route.hash.slice('#share/'.length)
+      const decompressed = await decompressContent(compressed)
       
-      // Try new decompression first
-      let decompressed = await decompressAdvanced(compressed)
-      
-      // If new decompression worked, we're done
-      if (decompressed) {
-        try {
-          const doc = JSON.parse(decompressed)
-          // Check if it's a valid document structure
-          if (doc.content !== undefined) {
-            return doc
-          }
-        } catch (e) {
-          // Not valid JSON, might be old format
-        }
-      }
-      
-      // Fallback to old decompression for backward compatibility
-      decompressed = decompressLZ(compressed)
       if (!decompressed) return null
       
-      // Old format might store content directly or as JSON
-      try {
-        const doc = JSON.parse(decompressed)
-        if (doc.content !== undefined) {
-          return doc
-        }
-        // Very old format: content stored directly
-        return {
-          content: decompressed,
-          createdAt: new Date().toISOString(),
-          readOnly: true,
-          version: 1
-        }
-      } catch {
-        // Old format with direct content
-        return {
-          content: decompressed,
-          createdAt: new Date().toISOString(),
-          readOnly: true,
-          version: 1
-        }
-      }
+      return JSON.parse(decompressed)
     } catch (error) {
       console.error('Failed to parse shared document:', error)
       return null
@@ -224,7 +150,7 @@ export function useContentSharing() {
   // Get compression statistics
   const getCompressionStats = async (content: string) => {
     const startTime = performance.now()
-    const compressed = await compressAdvanced(content, { async: false })
+    const compressed = await compressContent(content)
     const duration = performance.now() - startTime
     
     return {
@@ -232,14 +158,13 @@ export function useContentSharing() {
       compressedSize: new Blob([compressed]).size,
       ratio: Math.round((1 - new Blob([compressed]).size / new Blob([content]).size) * 100),
       duration: Math.round(duration),
-      canShare: canShareAdvanced(content)
+      canShare: canShareViaURL(content)
     }
   }
   
   return {
     isSharedDocument,
     generateShareURL,
-    generateShareURLSync,
     generateQRCode,
     parseSharedDocument,
     copyToClipboard,
@@ -247,7 +172,7 @@ export function useContentSharing() {
     trackShare,
     getRecentShares,
     makeEditableCopy,
-    canShareViaURL: canShareAdvanced,
+    canShareViaURL,
     getCompressionStats,
     COMPRESSION_THRESHOLDS
   }

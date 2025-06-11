@@ -9,22 +9,8 @@
       </DialogHeader>
       
       <div class="space-y-4">
-        <!-- Compression Progress -->
-        <div v-if="isCompressing" class="space-y-2">
-          <div class="flex items-center justify-between text-sm">
-            <span class="text-muted-foreground">{{ compressionStatus }}</span>
-            <span class="font-mono text-xs">{{ compressionProgress }}%</span>
-          </div>
-          <div class="h-2 bg-muted rounded-full overflow-hidden">
-            <div 
-              class="h-full bg-primary transition-all duration-300 ease-out"
-              :style="{ width: `${compressionProgress}%` }"
-            />
-          </div>
-        </div>
-        
         <!-- URL Preview and Copy -->
-        <div v-else-if="shareUrl" class="space-y-2">
+        <div v-if="shareUrl" class="space-y-2">
           <Label>Shareable Link</Label>
           <div class="flex gap-2">
             <Input
@@ -47,13 +33,12 @@
         </div>
         
         <!-- Size Warning -->
-        <div v-if="!canShare && !isCompressing" class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+        <div v-if="!canShare" class="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
           <div class="flex items-start gap-2">
             <Icon name="lucide:alert-triangle" class="h-4 w-4 mt-0.5" />
             <div>
               <p class="font-medium">Document too large for URL sharing</p>
               <p class="text-xs mt-1">
-                Your document exceeds {{ formatBytes(COMPRESSION_THRESHOLDS.LARGE_DOC_SIZE) }}. 
                 Please use the Export feature for very large documents.
               </p>
             </div>
@@ -72,7 +57,7 @@
         </div>
         
         <!-- Share Options -->
-        <div v-else-if="canShare && shareUrl && !isCompressing" class="space-y-3">
+        <div v-else-if="canShare && shareUrl" class="space-y-3">
           <!-- QR Code -->
           <div v-if="showQR" class="flex justify-center p-4 bg-muted rounded-lg">
             <img :src="qrCodeUrl" alt="QR Code" class="w-48 h-48" />
@@ -124,20 +109,6 @@
               <span class="font-mono">{{ compressionMethod }}</span>
             </div>
           </div>
-          
-          <!-- Large Document Info -->
-          <div v-if="isLargeDocument" class="rounded-md bg-amber-500/10 p-3 text-sm text-amber-600 dark:text-amber-400">
-            <div class="flex items-start gap-2">
-              <Icon name="lucide:info" class="h-4 w-4 mt-0.5" />
-              <div>
-                <p class="font-medium">Large document compressed</p>
-                <p class="text-xs mt-1">
-                  This document was compressed using advanced compression. 
-                  Recipients need a modern browser to open it.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </DialogContent>
@@ -155,7 +126,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import type { CompressionProgress } from '~/utils/compression-advanced'
 
 interface Props {
   modelValue: boolean
@@ -174,8 +144,7 @@ const {
   copyToClipboard,
   shareViaWebAPI,
   trackShare,
-  canShareViaURL,
-  COMPRESSION_THRESHOLDS
+  canShareViaURL
 } = useContentSharing()
 
 // Dialog state
@@ -193,9 +162,6 @@ const copied = ref(false)
 const generatingQR = ref(false)
 
 // Compression state
-const isCompressing = ref(false)
-const compressionProgress = ref(0)
-const compressionStatus = ref('Preparing...')
 const compressionError = ref('')
 const compressionTime = ref(0)
 const compressionMethod = ref('')
@@ -216,42 +182,14 @@ const compressionRatio = computed(() => {
 // Check if content can be shared
 const canShare = computed(() => canShareViaURL(props.content))
 
-// Check if this is a large document
-const isLargeDocument = computed(() => {
-  return props.content.length > COMPRESSION_THRESHOLDS.SYNC_MAX_SIZE
-})
-
 // Check if Web Share API is available
 const canUseWebShare = computed(() => {
   return typeof navigator !== 'undefined' && 'share' in navigator
 })
 
-// Handle compression progress
-const handleCompressionProgress = (progress: CompressionProgress) => {
-  compressionProgress.value = progress.progress
-  
-  switch (progress.status) {
-    case 'compressing':
-      compressionStatus.value = 'Compressing document...'
-      break
-    case 'encoding':
-      compressionStatus.value = 'Encoding for URL...'
-      break
-    case 'done':
-      compressionStatus.value = 'Complete!'
-      break
-    case 'error':
-      compressionError.value = progress.message || 'Unknown error occurred'
-      isCompressing.value = false
-      break
-  }
-}
-
 // Generate share URL when dialog opens or content changes
 watchEffect(async () => {
   if (isOpen.value && props.content && canShare.value) {
-    isCompressing.value = true
-    compressionProgress.value = 0
     compressionError.value = ''
     shareUrl.value = ''
     const startTime = performance.now()
@@ -259,8 +197,7 @@ watchEffect(async () => {
     try {
       const url = await generateShareURL(props.content, { 
         title: props.title,
-        readOnly: true,
-        onProgress: handleCompressionProgress
+        readOnly: true
       })
       
       shareUrl.value = url
@@ -279,13 +216,10 @@ watchEffect(async () => {
     } catch (error) {
       console.error('Failed to generate share URL:', error)
       compressionError.value = error instanceof Error ? error.message : 'Failed to compress document'
-    } finally {
-      isCompressing.value = false
     }
   } else if (isOpen.value && !canShare.value) {
     // Document is too large
     shareUrl.value = ''
-    isCompressing.value = false
   }
 })
 
