@@ -10,7 +10,6 @@ import markdownItAbbr from 'markdown-it-abbr'
 import markdownItDeflist from 'markdown-it-deflist'
 
 // Enhanced features
-import markdownItAttrs from 'markdown-it-attrs'
 import markdownItTaskLists from 'markdown-it-task-lists'
 import markdownItTableOfContents from 'markdown-it-table-of-contents'
 
@@ -101,10 +100,7 @@ md.use(markdownItTaskLists, {
   labelAfter: true
 })
 
-// 4. Attributes
-md.use(markdownItAttrs)
-
-// 5. Table of contents
+// 4. Table of contents
 md.use(markdownItTableOfContents, {
   includeLevel: [1, 2, 3, 4],
   containerClass: 'table-of-contents',
@@ -114,38 +110,38 @@ md.use(markdownItTableOfContents, {
   slugify: slugify // Use the same slugify function as anchor plugin
 })
 
-// 6. Footnotes
+// 5. Footnotes
 md.use(footnote, {
   prefixId: 'footnote-'
 })
 
-// 7. Math with KaTeX
+// 6. Math with KaTeX
 md.use(katex, {
   throwOnError: false,
   strict: false
 })
 
-// 8. Syntax highlighting
+// 7. Syntax highlighting
 md.use(markdownItHighlightjs, {
   hljs,
   auto: true,
   code: true
 })
 
-// 9. Advanced tables
+// 8. Advanced tables
 md.use(markdownItMultimdTable, {
   multiline: true,
   rowspan: true,
   headerless: true
 })
 
-// 10. PlantUML support
+// 9. PlantUML support
 md.use(markdownItPlantUML, {
   imageFormat: 'svg',
   server: 'https://www.plantuml.com/plantuml'
 })
 
-// 11. Mermaid support - custom renderer for fence blocks with optimized loading
+// 10. Mermaid support - custom renderer for fence blocks with optimized loading
 const originalFence = md.renderer.rules.fence!
 md.renderer.rules.fence = function (tokens, idx, options, env, self) {
   const token = tokens[idx]
