@@ -154,4 +154,12 @@ export default defineNuxtConfig({
       routes: ['/'],
     },
   },
+  // Security configuration
+  security: {
+    headers: {
+      contentSecurityPolicy: {
+        'img-src': ["'self'", "data:", "https:", "http:"],
+      }
+    }
+  }
 })
