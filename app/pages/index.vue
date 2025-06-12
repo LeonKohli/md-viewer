@@ -445,6 +445,9 @@ const {
   makeEditableCopy: makeEditableCopyFromShared
 } = useContentSharing()
 
+// Route composable for watching hash changes
+const route = useRoute()
+
 // Preview container ref
 const previewContainerRef = ref<HTMLElement>()
 
@@ -734,17 +737,43 @@ const makeEditableCopy = async () => {
   }
 }
 
+// Watch for route changes to handle shared documents
+// This ensures shared content loads even when page is cached
+watch(() => route.hash, async (newHash, oldHash) => {
+  // Check if we're navigating to a shared document
+  if (newHash.startsWith('#share/') && newHash !== oldHash) {
+    await handleSharedDocument()
+  }
+  // Check if we're navigating away from a shared document
+  else if (oldHash?.startsWith('#share/') && !newHash.startsWith('#share/')) {
+    // Reset shared document state when navigating away
+    isViewingSharedDocument.value = false
+    sharedDocumentTitle.value = ''
+  }
+}, { immediate: true })
+
+// Handle hashchange events as a fallback
+// This ensures shared content loads even with browser back/forward navigation
+const handleHashChange = async () => {
+  if (window.location.hash.startsWith('#share/')) {
+    await handleSharedDocument()
+  }
+}
+
 // Set up keyboard listeners
 onMounted(async () => {
   window.addEventListener('keydown', handleKeydown)
+  window.addEventListener('hashchange', handleHashChange)
   
-  // Check for shared document
+  // Also check on mount for cases where watch might not trigger
+  // (e.g., direct navigation to shared URL)
   await handleSharedDocument()
 })
 
 // Clean up keyboard listener
 onUnmounted(() => {
   window.removeEventListener('keydown', handleKeydown)
+  window.removeEventListener('hashchange', handleHashChange)
 })
 
 </script>
