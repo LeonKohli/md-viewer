@@ -8,30 +8,38 @@
       </div>
       
       <!-- Toolbar Actions -->
-      <div class="flex items-center gap-1 md:gap-2">
-        <!-- Table of Contents button -->
+      <nav class="flex items-center gap-1 md:gap-2" role="toolbar" aria-label="Editor toolbar">
+        <!-- Navigation: TOC -->
         <Button 
           variant="ghost" 
           size="sm"
           @click="toggleToc"
           :title="`Toggle Table of Contents (${isMac ? 'Cmd' : 'Ctrl'}+/)`"
+          :aria-label="`Toggle Table of Contents. Keyboard shortcut: ${isMac ? 'Command' : 'Control'} plus slash`"
+          :aria-pressed="showToc ? 'true' : 'false'"
+          :aria-keyshortcuts="isMac ? 'Meta+/' : 'Control+/'"
           :class="{ 'bg-accent text-accent-foreground': showToc }"
-          class="px-2"
+          class="px-2 h-9 md:h-10 touch-target"
         >
           <Icon name="lucide:list" class="w-4 h-4" />
           <span class="hidden sm:inline ml-1.5">TOC</span>
         </Button>
         
-        <!-- Reset panels button - Desktop only -->
+        <!-- Separator -->
+        <div class="hidden sm:block w-px h-5 bg-border/60 mx-0.5" aria-hidden="true" />
+        
+        <!-- Content Actions: Copy, Share, Export -->
+        <!-- Copy button -->
         <Button 
           variant="ghost" 
           size="sm"
-          @click="resetPanels"
-          title="Reset to 50/50 split"
-          class="hidden md:flex"
+          @click="copyMarkdown"
+          title="Copy markdown to clipboard"
+          aria-label="Copy markdown content to clipboard"
+          class="hidden sm:flex h-9 md:h-10 touch-target"
         >
-          <Icon name="lucide:layout-panel-left" class="w-4 h-4 mr-1.5" />
-          Reset
+          <Icon name="lucide:copy" class="w-4 h-4 mr-1.5" />
+          Copy
         </Button>
         
         <!-- Share button -->
@@ -40,52 +48,27 @@
           size="sm"
           @click="openShareDialog"
           :title="`Share document (${isMac ? 'Cmd' : 'Ctrl'}+Shift+S)`"
-          class="hidden sm:flex"
+          :aria-label="`Share document. Keyboard shortcut: ${isMac ? 'Command' : 'Control'} plus Shift plus S`"
+          :aria-keyshortcuts="isMac ? 'Meta+Shift+S' : 'Control+Shift+S'"
+          class="hidden sm:flex h-9 md:h-10 touch-target"
         >
           <Icon name="lucide:share-2" class="w-4 h-4 mr-1.5" />
           Share
         </Button>
         
-        <!-- Copy button -->
-        <Button 
-          variant="ghost" 
-          size="sm"
-          @click="copyMarkdown"
-          title="Copy markdown"
-          class="hidden sm:flex"
-        >
-          <Icon name="lucide:copy" class="w-4 h-4 mr-1.5" />
-          Copy
-        </Button>
-        
-        <!-- Examples dropdown - Desktop only -->
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child class="hidden md:flex">
-            <Button variant="ghost" size="sm">
-              <Icon name="lucide:sparkles" class="w-4 h-4 mr-1" />
-              <span>Examples</span>
-              <Icon name="lucide:chevron-down" class="w-3 h-3 ml-1" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" class="w-56">
-            <DropdownMenuItem 
-              v-for="(content, title) in MARKDOWN_EXAMPLES" 
-              :key="title"
-              @click="loadExample(title, content)"
-            >
-              <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
-              {{ title }}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-        
-        <!-- Download dropdown -->
+        <!-- Export dropdown -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child class="hidden sm:flex">
-            <Button variant="ghost" size="sm">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              aria-label="Export options menu"
+              aria-haspopup="true"
+              class="h-9 md:h-10 touch-target"
+            >
               <Icon name="lucide:download" class="w-4 h-4 mr-1.5" />
               <span class="hidden lg:inline">Export</span>
-              <Icon name="lucide:chevron-down" class="w-3 h-3 ml-1" />
+              <Icon name="lucide:chevron-down" class="w-3 h-3 ml-1" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-56">
@@ -126,8 +109,12 @@
           </DropdownMenuContent>
         </DropdownMenu>
         
+        <!-- Separator -->
+        <div class="hidden sm:block w-px h-5 bg-border/60 mx-0.5" aria-hidden="true" />
+        
+        <!-- View Controls: Color Mode & Fullscreen -->
         <!-- Color mode toggle -->
-        <ColorModeToggle />
+        <ColorModeToggle class="h-9 md:h-10 touch-target" />
         
         <!-- Fullscreen button -->
         <Button 
@@ -135,42 +122,71 @@
           size="sm"
           @click="toggleFullscreen"
           :title="isFullscreen ? 'Exit fullscreen (ESC)' : 'Enter fullscreen'"
-          :aria-label="isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'"
+          :aria-label="isFullscreen ? 'Exit fullscreen mode. Press Escape key to exit.' : 'Enter fullscreen mode'"
+          :aria-pressed="isFullscreen ? 'true' : 'false'"
+          class="h-9 md:h-10 touch-target"
         >
           <Icon :name="isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-4 h-4" />
         </Button>
+        
+        <!-- Desktop overflow menu for less frequent actions -->
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child class="hidden md:flex">
+            <Button 
+              variant="ghost" 
+              size="sm"
+              aria-label="More options"
+              aria-haspopup="true"
+              class="h-9 md:h-10 touch-target px-2"
+            >
+              <Icon name="lucide:more-horizontal" class="w-4 h-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-56">
+            <DropdownMenuItem @click="resetPanels">
+              <Icon name="lucide:layout-panel-left" class="w-4 h-4 mr-2" />
+              Reset Panels
+              <span class="ml-auto text-xs text-muted-foreground">50/50</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel class="text-xs">Load Examples</DropdownMenuLabel>
+            <DropdownMenuItem 
+              v-for="(content, title) in MARKDOWN_EXAMPLES" 
+              :key="title"
+              @click="loadExample(title, content)"
+            >
+              <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
+              {{ title }}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         <!-- Mobile dropdown for smaller screens -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child class="sm:hidden">
-            <Button variant="ghost" size="sm" aria-label="More options" class="px-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              aria-label="More options menu" 
+              aria-haspopup="true"
+              class="px-2 h-9 touch-target"
+            >
               <Icon name="lucide:more-vertical" class="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-48">
-            <DropdownMenuItem @click="openShareDialog">
-              <Icon name="lucide:share-2" class="w-4 h-4 mr-2" />
-              Share
-            </DropdownMenuItem>
+            <!-- Primary actions first -->
             <DropdownMenuItem @click="copyMarkdown">
               <Icon name="lucide:copy" class="w-4 h-4 mr-2" />
               Copy
             </DropdownMenuItem>
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <Icon name="lucide:sparkles" class="w-4 h-4 mr-2" />
-                Examples
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                <DropdownMenuItem 
-                  v-for="(content, title) in MARKDOWN_EXAMPLES" 
-                  :key="title"
-                  @click="loadExample(title, content)"
-                >
-                  {{ title }}
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
+            <DropdownMenuItem @click="openShareDialog">
+              <Icon name="lucide:share-2" class="w-4 h-4 mr-2" />
+              Share
+              <span class="ml-auto text-xs text-muted-foreground">⌘⇧S</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <!-- Export options -->
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <Icon name="lucide:download" class="w-4 h-4 mr-2" />
@@ -191,9 +207,33 @@
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
+            <DropdownMenuSeparator />
+            <!-- View options -->
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Icon name="lucide:layout" class="w-4 h-4 mr-2" />
+                View
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem @click="resetPanels">
+                  <Icon name="lucide:layout-panel-left" class="w-4 h-4 mr-2" />
+                  Reset Panels
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel class="text-xs">Examples</DropdownMenuLabel>
+                <DropdownMenuItem 
+                  v-for="(content, title) in MARKDOWN_EXAMPLES" 
+                  :key="title"
+                  @click="loadExample(title, content)"
+                >
+                  <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
+                  {{ title }}
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
           </DropdownMenuContent>
         </DropdownMenu>
-      </div>
+      </nav>
     </div>
   </header>
 </template>
@@ -206,6 +246,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   DropdownMenuSub,
@@ -377,3 +418,22 @@ const openShareDialog = () => {
 
 // Remove auto-loading of sample content
 </script>
+
+<style scoped>
+/* Ensure minimum touch target size for mobile */
+.touch-target {
+  min-height: 44px;
+}
+
+/* Enhanced focus indicators for better accessibility */
+:deep(.touch-target:focus-visible) {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+}
+
+@media (min-width: 768px) {
+  .touch-target {
+    min-height: 40px;
+  }
+}
+</style>
