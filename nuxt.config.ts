@@ -138,7 +138,7 @@ export default defineNuxtConfig({
       ]
     },
     client: {
-      installPrompt: true, // Show install prompt
+      installPrompt: false, // Use default browser install prompt
       periodicSyncForUpdates: 3600 // Check for updates every hour
     },
     devOptions: {
