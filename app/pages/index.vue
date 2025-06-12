@@ -752,28 +752,12 @@ watch(() => route.hash, async (newHash, oldHash) => {
   }
 }, { immediate: true })
 
-// Handle hashchange events as a fallback
-// This ensures shared content loads even with browser back/forward navigation
-const handleHashChange = async () => {
-  if (window.location.hash.startsWith('#share/')) {
-    await handleSharedDocument()
-  }
-}
 
-// Set up keyboard listeners
-onMounted(async () => {
-  window.addEventListener('keydown', handleKeydown)
-  window.addEventListener('hashchange', handleHashChange)
-  
-  // Also check on mount for cases where watch might not trigger
-  // (e.g., direct navigation to shared URL)
-  await handleSharedDocument()
+// Set up keyboard listeners using VueUse for automatic cleanup
+onMounted(() => {
+  useEventListener(window, 'keydown', handleKeydown)
 })
 
-// Clean up keyboard listener
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
-  window.removeEventListener('hashchange', handleHashChange)
-})
+// Clean up on unmount is handled automatically by useEventListener
 
 </script>
