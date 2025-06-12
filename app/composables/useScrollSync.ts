@@ -1,4 +1,4 @@
-import { useEventListener, useRafFn } from '@vueuse/core'
+import { useEventListener } from '@vueuse/core'
 
 export function useScrollSync() {
   // Scroll sync state
@@ -80,27 +80,39 @@ export function useScrollSync() {
     }, timeout)
   }
   
-  // Sync editor scroll to preview using rAF for optimal performance
+  // Sync editor scroll to preview using single rAF execution
   const syncEditorToPreview = () => {
-    if (!editorElement.value || !previewElement.value) return
+    if (pendingEditorSync || !isEnabled.value) return
     
-    const percentage = getScrollPercentage(editorElement.value)
-    setScrollPercentage(previewElement.value, percentage)
-    pendingEditorSync = false
+    pendingEditorSync = true
+    requestAnimationFrame(() => {
+      if (!editorElement.value || !previewElement.value) {
+        pendingEditorSync = false
+        return
+      }
+      
+      const percentage = getScrollPercentage(editorElement.value)
+      setScrollPercentage(previewElement.value, percentage)
+      pendingEditorSync = false
+    })
   }
   
-  // Sync preview scroll to editor using rAF for optimal performance
+  // Sync preview scroll to editor using single rAF execution
   const syncPreviewToEditor = () => {
-    if (!editorElement.value || !previewElement.value) return
+    if (pendingPreviewSync || !isEnabled.value) return
     
-    const percentage = getScrollPercentage(previewElement.value)
-    setScrollPercentage(editorElement.value, percentage)
-    pendingPreviewSync = false
+    pendingPreviewSync = true
+    requestAnimationFrame(() => {
+      if (!editorElement.value || !previewElement.value) {
+        pendingPreviewSync = false
+        return
+      }
+      
+      const percentage = getScrollPercentage(previewElement.value)
+      setScrollPercentage(editorElement.value, percentage)
+      pendingPreviewSync = false
+    })
   }
-  
-  // Create rAF functions for smooth 60fps sync
-  const { pause: pauseEditorSync, resume: resumeEditorSync } = useRafFn(syncEditorToPreview, { immediate: false })
-  const { pause: pausePreviewSync, resume: resumePreviewSync } = useRafFn(syncPreviewToEditor, { immediate: false })
   
   // Handle editor scroll
   const handleEditorScroll = () => {
@@ -113,11 +125,8 @@ export function useScrollSync() {
     activePanel = 'editor'
     handleScrollEnd()
     
-    // Schedule sync on next frame if not already pending
-    if (!pendingEditorSync) {
-      pendingEditorSync = true
-      resumeEditorSync()
-    }
+    // Trigger sync
+    syncEditorToPreview()
   }
   
   // Handle preview scroll
@@ -131,11 +140,8 @@ export function useScrollSync() {
     activePanel = 'preview'
     handleScrollEnd()
     
-    // Schedule sync on next frame if not already pending
-    if (!pendingPreviewSync) {
-      pendingPreviewSync = true
-      resumePreviewSync()
-    }
+    // Trigger sync
+    syncPreviewToEditor()
   }
   
   // Mouse event handlers
@@ -187,16 +193,10 @@ export function useScrollSync() {
   }
   
   // Clear active panel when toggling
-  watch(isEnabled, (enabled) => {
+  watch(isEnabled, () => {
     activePanel = null
     pendingEditorSync = false
     pendingPreviewSync = false
-    
-    // Pause rAF functions when disabled for better performance
-    if (!enabled) {
-      pauseEditorSync()
-      pausePreviewSync()
-    }
   })
   
   // Manual sync operations
@@ -271,8 +271,8 @@ export function useScrollSync() {
     if (scrollEndTimer) {
       clearTimeout(scrollEndTimer)
     }
-    pauseEditorSync()
-    pausePreviewSync()
+    pendingEditorSync = false
+    pendingPreviewSync = false
   })
   
   return {
