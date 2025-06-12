@@ -29,17 +29,21 @@
         <div class="hidden sm:block w-px h-5 bg-border/60 mx-0.5" aria-hidden="true" />
         
         <!-- Content Actions: Copy, Share, Export -->
-        <!-- Copy button -->
+        <!-- Copy button with feedback -->
         <Button 
           variant="ghost" 
           size="sm"
           @click="copyMarkdown"
-          title="Copy markdown to clipboard"
+          :title="copied ? 'Copied!' : 'Copy markdown to clipboard'"
           aria-label="Copy markdown content to clipboard"
-          class="hidden sm:flex h-9 md:h-10 touch-target"
+          class="h-9 md:h-10 touch-target"
         >
-          <Icon name="lucide:copy" class="w-4 h-4 mr-1.5" />
-          Copy
+          <Icon 
+            :name="copied ? 'lucide:check' : 'lucide:copy'" 
+            class="w-4 h-4 sm:mr-1.5 transition-all duration-200"
+            :class="copied ? 'text-green-600 dark:text-green-400' : ''"
+          />
+          <span class="hidden sm:inline">{{ copied ? 'Copied!' : 'Copy' }}</span>
         </Button>
         
         <!-- Share button -->
@@ -101,11 +105,6 @@
                 </DropdownMenuItem>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem @click="copyToClipboard">
-              <Icon name="lucide:clipboard" class="w-4 h-4 mr-2" />
-              Copy to Clipboard
-            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
         
@@ -176,10 +175,6 @@
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" class="w-48">
             <!-- Primary actions first -->
-            <DropdownMenuItem @click="copyMarkdown">
-              <Icon name="lucide:copy" class="w-4 h-4 mr-2" />
-              Copy
-            </DropdownMenuItem>
             <DropdownMenuItem @click="openShareDialog">
               <Icon name="lucide:share-2" class="w-4 h-4 mr-2" />
               Share
@@ -265,6 +260,9 @@ const props = withDefaults(defineProps<MarkdownNavbarProps>(), {
 // Get TOC state
 const showToc = useState('showToc', () => false)
 
+// Copy button feedback state
+const copied = ref(false)
+
 /**
  * Detect if the user is on a Mac for keyboard shortcut display.
  * Uses the user agent string to check for 'Mac' in the platform.
@@ -302,6 +300,11 @@ const toggleFullscreen = () => {
 const copyMarkdown = async () => {
   try {
     await navigator.clipboard.writeText(props.markdownContent || '')
+    // Show success feedback
+    copied.value = true
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
   } catch (err) {
     // Clipboard API failed, fallback to textarea method
     try {
@@ -311,6 +314,11 @@ const copyMarkdown = async () => {
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
+      // Show success feedback
+      copied.value = true
+      setTimeout(() => {
+        copied.value = false
+      }, 2000)
     } catch (fallbackErr) {
       // Silent failure - no console.error in production
     }
@@ -364,13 +372,6 @@ const downloadAsHtml = (type: 'simple' | 'simple-no-toc' | 'advanced') => {
   )
 }
 
-/**
- * Copy the markdown content to the clipboard.
- * This is a wrapper for copyMarkdown for menu compatibility.
- */
-const copyToClipboard = () => {
-  copyMarkdown()
-}
 
 /**
  * Clear the markdown content and emit events for parent handling.
@@ -430,6 +431,7 @@ const openShareDialog = () => {
   outline: 2px solid hsl(var(--primary));
   outline-offset: 2px;
 }
+
 
 @media (min-width: 768px) {
   .touch-target {
