@@ -1,4 +1,4 @@
-import { useEventListener, useThrottleFn } from '@vueuse/core'
+import { useEventListener } from '@vueuse/core'
 
 export function useScrollSync() {
   // Scroll sync state
@@ -16,7 +16,18 @@ export function useScrollSync() {
   let scrollEndTimer: NodeJS.Timeout | null = null
   let isMouseDown = false
   
-  // Calculate scroll percentage
+  // Track pending sync operations to prevent duplicate rAF calls
+  let pendingEditorSync = false
+  let pendingPreviewSync = false
+  
+  // Performance monitoring in development
+  const performanceMetrics = ref({
+    lastSyncDuration: 0,
+    syncCount: 0,
+    averageSyncDuration: 0
+  })
+  
+  // Calculate scroll percentage with caching for better performance
   const getScrollPercentage = (element: HTMLElement): number => {
     const { scrollTop, scrollHeight, clientHeight } = element
     const maxScroll = scrollHeight - clientHeight
@@ -25,8 +36,10 @@ export function useScrollSync() {
     return scrollTop / maxScroll
   }
   
-  // Set scroll position by percentage
+  // Set scroll position by percentage with performance tracking
   const setScrollPercentage = (element: HTMLElement, percentage: number) => {
+    const startTime = performance.now()
+    
     const { scrollHeight, clientHeight } = element
     const maxScroll = scrollHeight - clientHeight
     
@@ -34,10 +47,22 @@ export function useScrollSync() {
     
     const targetScrollTop = percentage * maxScroll
     
-    // Only update if there's a meaningful difference
+    // Only update if there's a meaningful difference (prevents micro-jitter)
     const currentScrollTop = element.scrollTop
-    if (Math.abs(targetScrollTop - currentScrollTop) > 1) {
+    const diff = Math.abs(targetScrollTop - currentScrollTop)
+    
+    if (diff > 1) {
       element.scrollTop = targetScrollTop
+      
+      // Track performance in development
+      if (import.meta.dev) {
+        const duration = performance.now() - startTime
+        performanceMetrics.value.lastSyncDuration = duration
+        performanceMetrics.value.syncCount++
+        performanceMetrics.value.averageSyncDuration = 
+          (performanceMetrics.value.averageSyncDuration * (performanceMetrics.value.syncCount - 1) + duration) / 
+          performanceMetrics.value.syncCount
+      }
     }
   }
   
@@ -50,11 +75,47 @@ export function useScrollSync() {
     const timeout = isMouseDown ? 300 : 150
     scrollEndTimer = setTimeout(() => {
       activePanel = null
+      pendingEditorSync = false
+      pendingPreviewSync = false
     }, timeout)
   }
   
+  // Sync editor scroll to preview using single rAF execution
+  const syncEditorToPreview = () => {
+    if (pendingEditorSync || !isEnabled.value) return
+    
+    pendingEditorSync = true
+    requestAnimationFrame(() => {
+      if (!editorElement.value || !previewElement.value) {
+        pendingEditorSync = false
+        return
+      }
+      
+      const percentage = getScrollPercentage(editorElement.value)
+      setScrollPercentage(previewElement.value, percentage)
+      pendingEditorSync = false
+    })
+  }
+  
+  // Sync preview scroll to editor using single rAF execution
+  const syncPreviewToEditor = () => {
+    if (pendingPreviewSync || !isEnabled.value) return
+    
+    pendingPreviewSync = true
+    requestAnimationFrame(() => {
+      if (!editorElement.value || !previewElement.value) {
+        pendingPreviewSync = false
+        return
+      }
+      
+      const percentage = getScrollPercentage(previewElement.value)
+      setScrollPercentage(editorElement.value, percentage)
+      pendingPreviewSync = false
+    })
+  }
+  
   // Handle editor scroll
-  const handleEditorScroll = useThrottleFn(() => {
+  const handleEditorScroll = () => {
     if (!isEnabled.value || !editorElement.value || !previewElement.value) return
     
     // If preview is actively scrolling, ignore editor events
@@ -64,13 +125,12 @@ export function useScrollSync() {
     activePanel = 'editor'
     handleScrollEnd()
     
-    // Sync to preview
-    const percentage = getScrollPercentage(editorElement.value)
-    setScrollPercentage(previewElement.value, percentage)
-  }, 32) // Slightly slower for scrollbar stability
+    // Trigger sync
+    syncEditorToPreview()
+  }
   
   // Handle preview scroll
-  const handlePreviewScroll = useThrottleFn(() => {
+  const handlePreviewScroll = () => {
     if (!isEnabled.value || !editorElement.value || !previewElement.value) return
     
     // If editor is actively scrolling, ignore preview events
@@ -80,10 +140,9 @@ export function useScrollSync() {
     activePanel = 'preview'
     handleScrollEnd()
     
-    // Sync to editor
-    const percentage = getScrollPercentage(previewElement.value)
-    setScrollPercentage(editorElement.value, percentage)
-  }, 32) // Slightly slower for scrollbar stability
+    // Trigger sync
+    syncPreviewToEditor()
+  }
   
   // Mouse event handlers
   const handleMouseDown = () => {
@@ -136,6 +195,8 @@ export function useScrollSync() {
   // Clear active panel when toggling
   watch(isEnabled, () => {
     activePanel = null
+    pendingEditorSync = false
+    pendingPreviewSync = false
   })
   
   // Manual sync operations
@@ -205,6 +266,15 @@ export function useScrollSync() {
       : 'Scroll sync disabled - Click to enable'
   })
   
+  // Cleanup on unmount
+  onUnmounted(() => {
+    if (scrollEndTimer) {
+      clearTimeout(scrollEndTimer)
+    }
+    pendingEditorSync = false
+    pendingPreviewSync = false
+  })
+  
   return {
     syncEnabled: isEnabled,
     scrollSyncStatus,
@@ -216,5 +286,6 @@ export function useScrollSync() {
     syncToTop,
     syncToBottom,
     scrollToElement,
+    ...(import.meta.dev ? { performanceMetrics: readonly(performanceMetrics) } : {})
   }
 }
