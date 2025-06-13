@@ -128,6 +128,60 @@
           <Icon :name="isFullscreen ? 'lucide:minimize-2' : 'lucide:maximize-2'" class="w-4 h-4" />
         </Button>
         
+        <!-- Separator -->
+        <div class="hidden sm:block w-px h-5 bg-border/60 mx-0.5" aria-hidden="true" />
+        
+        <!-- Auth State -->
+        <AuthState>
+          <template #default="{ loggedIn, clear, session }">
+            <div v-if="loggedIn" class="flex items-center gap-1">
+              <DropdownMenu>
+                <DropdownMenuTrigger class="flex items-center gap-2 outline-none">
+                  <Avatar class="w-8 h-8 transition-transform hover:scale-105">
+                    <AvatarImage
+                      v-if="session?.user?.avatarUrl"
+                      :src="session.user.avatarUrl"
+                      :alt="session.user.name || 'User avatar'"
+                    />
+                    <AvatarFallback v-else>
+                      {{ (session?.user?.name || session?.user?.login || 'U')[0]?.toUpperCase() }}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span class="hidden md:block text-sm font-medium">{{ session?.user?.login }}</span>
+                  <Icon name="lucide:chevron-down" class="w-3 h-3 text-muted-foreground" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" class="w-56">
+                  <DropdownMenuLabel>
+                    <div class="flex flex-col">
+                      <span>{{ session?.user?.name || session?.user?.login }}</span>
+                      <span class="text-xs font-normal text-muted-foreground">{{ session?.user?.email }}</span>
+                    </div>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem disabled>
+                    <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
+                    My Gists
+                    <span class="ml-auto text-xs text-muted-foreground">Coming soon</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem @click="handleLogout">
+                    <Icon name="lucide:log-out" class="w-4 h-4 mr-2" />
+                    <span>Logout</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <Button v-else @click="handleLogin" size="sm" variant="outline" class="gap-2">
+              <Icon name="lucide:github" class="w-4 h-4" />
+              <span class="hidden sm:inline">Login</span>
+            </Button>
+          </template>
+          <template #placeholder>
+            <!-- Minimal placeholder to prevent layout shift -->
+            <div class="w-20 h-9 md:h-10" />
+          </template>
+        </AuthState>
+        
         <!-- Desktop overflow menu for less frequent actions -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child class="hidden md:flex">
@@ -248,6 +302,7 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 // Props and emits
 const props = withDefaults(defineProps<MarkdownNavbarProps>(), {
@@ -415,6 +470,23 @@ const toggleToc = () => {
  */
 const openShareDialog = () => {
   emit('openShare')
+}
+
+/**
+ * Handle user login by redirecting to GitHub OAuth.
+ */
+const handleLogin = () => {
+  navigateTo('/api/auth/github', { external: true })
+}
+
+/**
+ * Handle user logout.
+ */
+const handleLogout = async () => {
+  const { clear } = useUserSession()
+  await clear()
+  // Just reload the page after logout
+  await navigateTo('/')
 }
 
 // Remove auto-loading of sample content

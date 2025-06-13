@@ -43,6 +43,7 @@
     "markdown-it-task-lists": "^2.1.1",
     "mermaid": "^11.6.0",
     "nuxt": "^3.17.4",
+    "nuxt-auth-utils": "^0.5.20",
     "nuxt-security": "2.2.0",
     "pako": "^2.1.0",
     "qrcode": "^1.5.4",

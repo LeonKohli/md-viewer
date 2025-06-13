@@ -11,6 +11,7 @@ bun run dev          # Start development server (http://localhost:3000)
 bun run build        # Build for production
 bun run generate     # Generate static site
 bun run preview      # Preview production build
+bun run typecheck    # Run TypeScript type checking
 ```
 
 ## PWA Configuration
@@ -85,3 +86,7 @@ This is a Nuxt 3-based Markdown editor with live preview, built using Vue 3 Comp
 10. For Nuxt.js best practices, refer to `nuxtjs.md`
 11. Use Puppeteer for iterating on website design and testing
 12. When unsure about libraries or need more knowledge, use Context7 MCP server
+
+### Important Reminders
+
+- Always make sure to run `bun run typecheck` to make sure there are no errors

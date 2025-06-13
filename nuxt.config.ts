@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['@nuxt/icon', 'shadcn-nuxt', '@vueuse/nuxt', '@nuxtjs/color-mode', '@nuxtjs/seo', '@nuxt/scripts', '@vite-pwa/nuxt', 'nuxt-security'],
+  modules: ['@nuxt/icon', 'shadcn-nuxt', '@vueuse/nuxt', '@nuxtjs/color-mode', '@nuxtjs/seo', '@nuxt/scripts', '@vite-pwa/nuxt', 'nuxt-security', 'nuxt-auth-utils'],
   future: {
     compatibilityVersion: 4,
   },
@@ -161,6 +161,15 @@ export default defineNuxtConfig({
         'img-src': ["'self'", "data:", "https:", "http:"],
         'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://um.web.leonkohli.de", "https://static.cloudflareinsights.com"],
         'connect-src': ["'self'", "https://um.web.leonkohli.de", "https://static.cloudflareinsights.com"]
+      }
+    }
+  },
+  // GitHub OAuth configuration
+  runtimeConfig: {
+    oauth: {
+      github: {
+        clientId: process.env.GITHUB_CLIENT_ID,
+        clientSecret: process.env.GITHUB_CLIENT_SECRET,
       }
     }
   }
