@@ -7,7 +7,6 @@ declare module '#auth-utils' {
     name?: string
     login: string
     avatarUrl: string
-    accessToken: string
   }
 
   interface UserSession {
@@ -15,7 +14,7 @@ declare module '#auth-utils' {
   }
 
   interface SecureSessionData {
-    // Add any secure fields if needed
+    accessToken: string
   }
 }
 

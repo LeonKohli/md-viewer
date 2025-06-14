@@ -22,9 +22,9 @@
                 {{ filename }}
               </h4>
               <p class="text-sm text-muted-foreground mt-1">
-                {{ formatFileSize(file.size) }} · {{ file.language || 'Plain text' }}
+                {{ formatFileSize(file?.size || 0) }} · {{ file?.language || 'Plain text' }}
               </p>
-              <p v-if="file.truncated" class="text-xs text-orange-600 dark:text-orange-400 mt-1">
+              <p v-if="(file as any)?.truncated" class="text-xs text-orange-600 dark:text-orange-400 mt-1">
                 <Icon name="lucide:alert-triangle" class="w-3 h-3 inline mr-1" />
                 File truncated (too large)
               </p>

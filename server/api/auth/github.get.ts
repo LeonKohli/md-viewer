@@ -19,8 +19,10 @@ export default defineOAuthGitHubEventHandler({
         email: user.email,
         name: user.name || user.login,
         login: user.login, // GitHub username for gist operations
-        avatarUrl: user.avatar_url,
-        accessToken: tokens.access_token // Store token for gist API calls
+        avatarUrl: user.avatar_url
+      },
+      secure: {
+        accessToken: tokens.access_token // Store token securely - only accessible on server
       },
       loggedInAt: new Date()
     })

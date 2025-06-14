@@ -26,7 +26,7 @@
     <SaveGistDialogMulti
       v-model="showSaveGistDialog"
       :content="markdownInput"
-      :existing-gist="currentGist"
+      :existing-gist="currentGist as Gist"
       :current-filename="currentGistFilename"
       @saved="handleGistSaved"
       @createNew="clearCurrentGist"
@@ -35,7 +35,7 @@
     <!-- Gist File Selector -->
     <GistFileSelector
       v-model="showFileSelector"
-      :gist="gistToLoad"
+      :gist="gistToLoad!"
       @select="loadGistFile"
     />
     
@@ -398,7 +398,7 @@
 
 <script setup lang="ts">
 import type { TocItem } from '~/composables/useTableOfContents'
-import type { Gist } from '~/types/gist'
+import type { Gist, GistFile } from '~/types/gist'
 import ShareDialog from '~/components/ShareDialog.vue'
 import GistManager from '~/components/GistManager.vue'
 import SaveGistDialogMulti from '~/components/SaveGistDialogMulti.vue'
@@ -810,7 +810,7 @@ const loadGist = async (gist: Gist) => {
     const fileCount = Object.keys(fullGist.files).length
     
     // Set the gist to load
-    gistToLoad.value = fullGist
+    gistToLoad.value = fullGist as Gist
     
     if (fileCount > 1) {
       // Show file selector for multi-file gists
@@ -818,7 +818,7 @@ const loadGist = async (gist: Gist) => {
     } else {
       // Single file - load directly
       const filename = Object.keys(fullGist.files)[0]
-      await loadGistFile(filename)
+      await loadGistFile(filename || '')
     }
   } catch (error) {
     console.error('Failed to load gist:', error)
@@ -830,11 +830,11 @@ const loadGistFile = async (filename: string) => {
   
   try {
     // Get the file content
-    const file = gistToLoad.value.files[filename]
+    const file = gistToLoad.value.files[filename] as GistFile
     if (!file) return
     
     // Load the content into the editor
-    markdownInput.value = file.content || ''
+    markdownInput.value = file?.content || ''
     currentGistFilename.value = filename
     
     // Update document title

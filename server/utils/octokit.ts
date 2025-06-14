@@ -7,7 +7,8 @@ import type { H3Event } from 'h3'
 export async function getUserOctokit(event: H3Event): Promise<Octokit> {
   const session = await requireUserSession(event)
   
-  if (!session.user?.accessToken) {
+  // Access token is now stored in the secure field
+  if (!session.secure?.accessToken) {
     throw createError({
       statusCode: 401,
       statusMessage: 'GitHub authentication required'
@@ -15,7 +16,7 @@ export async function getUserOctokit(event: H3Event): Promise<Octokit> {
   }
 
   return new Octokit({
-    auth: session.user.accessToken,
+    auth: session.secure.accessToken,
     userAgent: 'markdown-editor/1.0.0',
     // Enable automatic retries for better reliability
     retry: {
@@ -24,7 +25,7 @@ export async function getUserOctokit(event: H3Event): Promise<Octokit> {
     },
     // Enable request throttling to avoid rate limits
     throttle: {
-      onRateLimit: (retryAfter, options, octokit, retryCount) => {
+      onRateLimit: (retryAfter: number, options: any, octokit: Octokit, retryCount: number) => {
         octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`)
         
         if (retryCount < 1) {
@@ -33,7 +34,7 @@ export async function getUserOctokit(event: H3Event): Promise<Octokit> {
           return true
         }
       },
-      onSecondaryRateLimit: (retryAfter, options, octokit) => {
+      onSecondaryRateLimit: (retryAfter: number, options: any, octokit: Octokit) => {
         // Does not retry, only logs a warning
         octokit.log.warn(`SecondaryRateLimit detected for request ${options.method} ${options.url}`)
       }

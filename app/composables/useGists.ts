@@ -1,7 +1,7 @@
-import type { Gist, CreateGistRequest, UpdateGistRequest, GistOperationResult, GistListOptions } from '~/types/gist'
+import type { Gist, GistFile, CreateGistRequest, UpdateGistRequest, GistOperationResult, GistListOptions } from '~/types/gist'
 
 export const useGists = () => {
-  // State
+  // State - cast to handle readonly types from Octokit
   const gists = useState<Gist[]>('gists', () => [])
   const currentGist = useState<Gist | null>('currentGist', () => null)
   const isLoading = useState('gistsLoading', () => false)
@@ -227,12 +227,13 @@ export const useGists = () => {
    * Get gist content from a specific file
    */
   const getGistContent = (gist: Gist, filename?: string): string => {
-    const files = Object.entries(gist.files)
+    const files = Object.entries(gist.files) as Array<[string, GistFile]>
     if (files.length === 0) return ''
     
     // If filename specified, try to get that file
     if (filename && gist.files[filename]) {
-      return gist.files[filename].content || ''
+      const file = gist.files[filename] as GistFile
+      return file?.content || ''
     }
     
     // Otherwise get the first markdown file or first file

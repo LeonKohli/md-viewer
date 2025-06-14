@@ -7,8 +7,8 @@ export default defineNitroPlugin(() => {
       return
     }
     
-    // Only validate session when accessing gist-related endpoints (future use)
-    if (url.startsWith('/api/gists/') && !session.user?.accessToken) {
+    // Only validate session when accessing gist-related endpoints
+    if (url.startsWith('/api/gists/') && !session.secure?.accessToken) {
       await clearUserSession(event)
       throw createError({ 
         statusCode: 401, 

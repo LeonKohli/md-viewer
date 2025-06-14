@@ -1,9 +1,21 @@
-// Import Octokit types directly
-import type { RestEndpointMethodTypes } from '@octokit/types'
+// Import from Octokit directly for proper types
+import type { Octokit } from 'octokit'
 
-// Use Octokit's built-in types for better type safety
-export type Gist = RestEndpointMethodTypes['gists']['list']['response']['data'][0]
-export type GistFile = Gist['files'][string]
+// Extract proper types from Octokit responses
+type OctokitGistResponse = Awaited<ReturnType<Octokit['rest']['gists']['list']>>
+export type Gist = OctokitGistResponse['data'][0]
+
+// Extend GistFile to ensure content is always present
+export interface GistFile {
+  filename?: string
+  type?: string
+  language?: string
+  raw_url?: string
+  size?: number
+  truncated?: boolean
+  content?: string
+  encoding?: string
+}
 
 // Request types - these are custom for our app
 export interface CreateGistRequest {

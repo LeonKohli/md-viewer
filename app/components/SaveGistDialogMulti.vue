@@ -184,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Gist } from '~/types/gist'
+import type { Gist, GistFile } from '~/types/gist'
 import { useGists } from '~/composables/useGists'
 import {
   Dialog,
@@ -266,10 +266,11 @@ watch([() => props.modelValue, () => props.existingGist], ([isOpen, gist]) => {
     // Add other files from the gist (excluding the current one if it exists)
     Object.entries(gist.files).forEach(([filename, file]) => {
       if (filename !== currentFile && filename !== currentFileBase + '.md') {
+        const gistFile = file as GistFile
         files.value.push({
           id: Date.now().toString() + Math.random(),
           name: filename.endsWith('.md') ? filename.slice(0, -3) : filename,
-          content: file.content || '',
+          content: gistFile?.content || '',
           existingFile: true
         })
       }

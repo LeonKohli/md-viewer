@@ -48,13 +48,13 @@
               v-for="gist in filteredGists"
               :key="gist.id"
               class="p-4 border rounded-lg hover:bg-accent/50 transition-colors cursor-pointer group"
-              @click="handleSelectGist(gist)"
+              @click="handleSelectGist(gist as Gist)"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2 mb-1">
                     <h3 class="font-medium truncate">
-                      {{ getGistTitle(gist) }}
+                      {{ getGistTitle(gist as Gist) }}
                     </h3>
                     <Badge v-if="!gist.public" variant="secondary" class="text-xs">
                       Private
@@ -79,7 +79,7 @@
                   <Button
                     size="sm"
                     variant="ghost"
-                    @click.stop="handleCopyLink(gist)"
+                    @click.stop="handleCopyLink(gist as Gist)"
                     title="Copy gist link"
                   >
                     <Icon name="lucide:link" class="w-4 h-4" />
@@ -87,7 +87,7 @@
                   <Button
                     size="sm"
                     variant="ghost"
-                    @click.stop="handleDeleteGist(gist)"
+                    @click.stop="handleDeleteGist(gist as Gist)"
                     title="Delete gist"
                     class="text-destructive hover:text-destructive"
                   >
@@ -161,8 +161,8 @@ const filteredGists = computed(() => {
   if (!searchQuery.value) return gists.value
   
   const query = searchQuery.value.toLowerCase()
-  return gists.value.filter(gist => {
-    const titleMatch = getGistTitle(gist).toLowerCase().includes(query)
+  return gists.value.filter((gist) => {
+    const titleMatch = getGistTitle(gist as Gist).toLowerCase().includes(query)
     const descriptionMatch = gist.description?.toLowerCase().includes(query) || false
     const fileMatch = Object.keys(gist.files).some(filename => 
       filename.toLowerCase().includes(query)
