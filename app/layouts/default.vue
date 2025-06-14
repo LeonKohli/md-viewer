@@ -9,11 +9,14 @@
       v-model:is-fullscreen="isFullscreen"
       :rendered-html="renderedHtml"
       :toc-headings="tocHeadings"
+      :current-filename="currentGistFilename"
       @clear-content="handleClearContent"
       @load-sample="handleLoadSample"
       @reset-panels="handleResetPanels"
       @toggle-toc="handleToggleToc"
       @open-share="handleOpenShare"
+      @open-gists="handleOpenGists"
+      @save-gist="handleSaveGist"
       class="flex-shrink-0"
     />
 
@@ -32,6 +35,9 @@ const showToc = useState('showToc', () => false)
 const renderedHtml = useState<string>('renderedHtml', () => '')
 const tocHeadings = useState<any[]>('tocHeadings', () => [])
 const showShareDialog = useState('showShareDialog', () => false)
+const showGistManager = useState('showGistManager', () => false)
+const showSaveGistDialog = useState('showSaveGistDialog', () => false)
+const currentGistFilename = useState('currentGistFilename', () => '')
 
 // Event handlers
 const handleClearContent = () => {
@@ -54,6 +60,21 @@ const handleOpenShare = () => {
   showShareDialog.value = true
 }
 
+const handleOpenGists = () => {
+  showGistManager.value = true
+}
+
+const handleSaveGist = () => {
+  // Check if there's content to save
+  const content = markdownContent.value
+  if (!content || content.trim() === '') {
+    // TODO: Show toast notification
+    console.log('No content to save as gist')
+    return
+  }
+  showSaveGistDialog.value = true
+}
+
 // Add keyboard shortcuts
 const handleKeydown = (e: KeyboardEvent) => {
   // TOC shortcut (Ctrl/Cmd + /)
@@ -66,6 +87,12 @@ const handleKeydown = (e: KeyboardEvent) => {
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
     e.preventDefault()
     handleOpenShare()
+  }
+  
+  // Save gist shortcut (Ctrl/Cmd + G)
+  if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
+    e.preventDefault()
+    handleSaveGist()
   }
 }
 

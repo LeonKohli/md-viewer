@@ -5,6 +5,9 @@
       <div class="flex items-center gap-2">
         <Icon name="lucide:file-text" class="w-4 h-4 md:w-5 md:h-5 text-primary" />
         <h1 class="text-base md:text-lg font-semibold">Markdown</h1>
+        <span v-if="currentFilename" class="text-xs text-muted-foreground hidden sm:inline">
+          · {{ currentFilename }}
+        </span>
       </div>
       
       <!-- Toolbar Actions -->
@@ -158,10 +161,13 @@
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem disabled>
+                  <DropdownMenuItem @click="handleOpenGists">
                     <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
                     My Gists
-                    <span class="ml-auto text-xs text-muted-foreground">Coming soon</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem @click="handleSaveGist">
+                    <Icon name="lucide:save" class="w-4 h-4 mr-2" />
+                    Save as Gist
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem @click="handleLogout">
@@ -487,6 +493,20 @@ const handleLogout = async () => {
   await clear()
   // Just reload the page after logout
   await navigateTo('/')
+}
+
+/**
+ * Open the gists manager.
+ */
+const handleOpenGists = () => {
+  emit('openGists')
+}
+
+/**
+ * Save current content as a gist.
+ */
+const handleSaveGist = () => {
+  emit('saveGist')
 }
 
 // Remove auto-loading of sample content

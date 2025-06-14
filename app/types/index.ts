@@ -34,6 +34,7 @@ export interface MarkdownNavbarProps {
   isFullscreen?: boolean
   renderedHtml?: string
   tocHeadings?: TocItem[]
+  currentFilename?: string
 }
 
 export interface MarkdownNavbarEmits {
@@ -44,6 +45,8 @@ export interface MarkdownNavbarEmits {
   (e: 'resetPanels'): void
   (e: 'toggleToc'): void
   (e: 'openShare'): void
+  (e: 'openGists'): void
+  (e: 'saveGist'): void
 }
 
 // Export options
