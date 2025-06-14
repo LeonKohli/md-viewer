@@ -1,0 +1,274 @@
+import type { Gist, CreateGistRequest, UpdateGistRequest, GistOperationResult, GistListOptions } from '~/types/gist'
+
+export const useGists = () => {
+  // State
+  const gists = useState<Gist[]>('gists', () => [])
+  const currentGist = useState<Gist | null>('currentGist', () => null)
+  const isLoading = useState('gistsLoading', () => false)
+  const error = useState<string | null>('gistsError', () => null)
+  
+  // Pagination state
+  const currentPage = useState('gistsPage', () => 1)
+  const hasMore = useState('gistsHasMore', () => true)
+  const perPage = 30
+
+  /**
+   * Fetch user's gists with pagination
+   */
+  const fetchGists = async (options: GistListOptions = {}) => {
+    const { page = 1, search = '' } = options
+    
+    try {
+      isLoading.value = true
+      error.value = null
+      
+      const response = await $fetch<Gist[]>('/api/gists', {
+        query: {
+          page,
+          per_page: perPage
+        }
+      })
+      
+      if (page === 1) {
+        gists.value = response
+      } else {
+        gists.value = [...gists.value, ...response]
+      }
+      
+      currentPage.value = page
+      hasMore.value = response.length === perPage
+      
+      // Client-side search filtering
+      if (search) {
+        const searchLower = search.toLowerCase()
+        return gists.value.filter(gist => {
+          const descriptionMatch = gist.description?.toLowerCase().includes(searchLower)
+          const filenameMatch = Object.keys(gist.files).some(filename => 
+            filename.toLowerCase().includes(searchLower)
+          )
+          return descriptionMatch || filenameMatch
+        })
+      }
+      
+      return gists.value
+    } catch (err: any) {
+      error.value = err.data?.statusMessage || 'Failed to fetch gists'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Get a specific gist by ID
+   */
+  const getGist = async (gistId: string): Promise<Gist | null> => {
+    try {
+      isLoading.value = true
+      error.value = null
+      
+      const gist = await $fetch<Gist>(`/api/gists/${gistId}`)
+      currentGist.value = gist
+      
+      // Update in local cache if exists
+      const index = gists.value.findIndex(g => g.id === gistId)
+      if (index !== -1) {
+        gists.value[index] = gist
+      }
+      
+      return gist
+    } catch (err: any) {
+      error.value = err.data?.statusMessage || 'Failed to fetch gist'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Create a new gist
+   */
+  const createGist = async (request: CreateGistRequest): Promise<GistOperationResult> => {
+    try {
+      isLoading.value = true
+      error.value = null
+      
+      const gist = await $fetch<Gist>('/api/gists', {
+        method: 'POST',
+        body: request
+      })
+      
+      // Add to beginning of list
+      gists.value = [gist, ...gists.value]
+      currentGist.value = gist
+      
+      return { success: true, gist }
+    } catch (err: any) {
+      const errorMessage = err.data?.statusMessage || 'Failed to create gist'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Update an existing gist
+   */
+  const updateGist = async (gistId: string, request: UpdateGistRequest): Promise<GistOperationResult> => {
+    try {
+      isLoading.value = true
+      error.value = null
+      
+      const gist = await $fetch<Gist>(`/api/gists/${gistId}`, {
+        method: 'PATCH',
+        body: request
+      })
+      
+      // Update in local cache
+      const index = gists.value.findIndex(g => g.id === gistId)
+      if (index !== -1) {
+        gists.value[index] = gist
+      }
+      
+      if (currentGist.value?.id === gistId) {
+        currentGist.value = gist
+      }
+      
+      return { success: true, gist }
+    } catch (err: any) {
+      const errorMessage = err.data?.statusMessage || 'Failed to update gist'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Delete a gist
+   */
+  const deleteGist = async (gistId: string): Promise<GistOperationResult> => {
+    try {
+      isLoading.value = true
+      error.value = null
+      
+      await $fetch(`/api/gists/${gistId}`, {
+        method: 'DELETE'
+      })
+      
+      // Remove from local cache
+      gists.value = gists.value.filter(g => g.id !== gistId)
+      
+      if (currentGist.value?.id === gistId) {
+        currentGist.value = null
+      }
+      
+      return { success: true }
+    } catch (err: any) {
+      const errorMessage = err.data?.statusMessage || 'Failed to delete gist'
+      error.value = errorMessage
+      return { success: false, error: errorMessage }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Create or update a gist based on whether currentGist exists
+   */
+  const saveGist = async (
+    filename: string,
+    content: string,
+    description?: string,
+    isPublic: boolean = true
+  ): Promise<GistOperationResult> => {
+    if (currentGist.value) {
+      // Update existing gist
+      return updateGist(currentGist.value.id, {
+        description,
+        files: {
+          [filename]: { content }
+        }
+      })
+    } else {
+      // Create new gist
+      return createGist({
+        description,
+        public: isPublic,
+        files: {
+          [filename]: { content }
+        }
+      })
+    }
+  }
+
+  /**
+   * Load more gists (pagination)
+   */
+  const loadMore = async () => {
+    if (!hasMore.value || isLoading.value) return
+    
+    await fetchGists({ page: currentPage.value + 1 })
+  }
+
+  /**
+   * Reset gists state
+   */
+  const reset = () => {
+    gists.value = []
+    currentGist.value = null
+    currentPage.value = 1
+    hasMore.value = true
+    error.value = null
+  }
+
+  /**
+   * Get gist content from a specific file
+   */
+  const getGistContent = (gist: Gist, filename?: string): string => {
+    const files = Object.entries(gist.files)
+    if (files.length === 0) return ''
+    
+    // If filename specified, try to get that file
+    if (filename && gist.files[filename]) {
+      return gist.files[filename].content || ''
+    }
+    
+    // Otherwise get the first markdown file or first file
+    const mdFile = files.find(([name]) => name.endsWith('.md'))
+    if (mdFile) {
+      return mdFile[1].content || ''
+    }
+    
+    return files[0]?.[1]?.content || ''
+  }
+
+  /**
+   * Clear the current gist
+   */
+  const clearCurrentGist = () => {
+    currentGist.value = null
+  }
+
+  return {
+    // State
+    gists: readonly(gists),
+    currentGist: readonly(currentGist),
+    isLoading: readonly(isLoading),
+    error: readonly(error),
+    hasMore: readonly(hasMore),
+    
+    // Methods
+    fetchGists,
+    getGist,
+    createGist,
+    updateGist,
+    deleteGist,
+    saveGist,
+    loadMore,
+    reset,
+    getGistContent,
+    clearCurrentGist
+  }
+}
