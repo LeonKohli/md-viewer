@@ -15,6 +15,30 @@
       :title="documentTitle"
     />
     
+    <!-- Gist Manager -->
+    <GistManager
+      v-model="showGistManager"
+      @select="loadGist"
+      @create="showSaveGistDialog = true"
+    />
+    
+    <!-- Save Gist Dialog (Multi-file) -->
+    <SaveGistDialogMulti
+      v-model="showSaveGistDialog"
+      :content="markdownInput"
+      :existing-gist="currentGist"
+      :current-filename="currentGistFilename"
+      @saved="handleGistSaved"
+      @createNew="clearCurrentGist"
+    />
+    
+    <!-- Gist File Selector -->
+    <GistFileSelector
+      v-model="showFileSelector"
+      :gist="gistToLoad"
+      @select="loadGistFile"
+    />
+    
     <!-- Shared Document Banner -->
     <div 
       v-if="isViewingSharedDocument"
@@ -374,7 +398,11 @@
 
 <script setup lang="ts">
 import type { TocItem } from '~/composables/useTableOfContents'
+import type { Gist } from '~/types/gist'
 import ShareDialog from '~/components/ShareDialog.vue'
+import GistManager from '~/components/GistManager.vue'
+import SaveGistDialogMulti from '~/components/SaveGistDialogMulti.vue'
+import GistFileSelector from '~/components/GistFileSelector.vue'
 
 // SEO Meta
 useSeoMeta({
@@ -416,6 +444,8 @@ const {
   clearSavedContent,
   toggleTask
 } = useMarkdownEditor()
+
+const { currentGist, getGist, getGistContent, clearCurrentGist } = useGists()
 
 const { 
   editorSize, 
@@ -501,6 +531,9 @@ const clearEditor = () => {
       clearSavedContent()
     }
   }, 15000) // 15 seconds - longer than undo timeout
+  
+  // Clear gist filename
+  currentGistFilename.value = ''
 }
 
 const undoClear = () => {
@@ -574,6 +607,11 @@ const showToc = useState('showToc', () => false)
 const globalRenderedHtml = useState<string>('renderedHtml', () => '')
 const globalTocHeadings = useState<TocItem[]>('tocHeadings', () => [])
 const showShareDialog = useState('showShareDialog', () => false)
+const showGistManager = useState('showGistManager', () => false)
+const showSaveGistDialog = useState('showSaveGistDialog', () => false)
+const showFileSelector = ref(false)
+const gistToLoad = ref<Gist | null>(null)
+const currentGistFilename = useState('currentGistFilename', () => '')
 
 // Local state
 const isFocusMode = ref(false)
@@ -732,6 +770,7 @@ const makeEditableCopy = async () => {
     markdownInput.value = content
     isViewingSharedDocument.value = false
     sharedDocumentTitle.value = ''
+    currentGistFilename.value = ''
     // Switch to editor tab
     activeTab.value = 'editor'
   }
@@ -759,5 +798,72 @@ onMounted(() => {
 })
 
 // Clean up on unmount is handled automatically by useEventListener
+
+// Gist handlers
+const loadGist = async (gist: Gist) => {
+  try {
+    // Get the full gist data
+    const fullGist = await getGist(gist.id)
+    if (!fullGist) return
+    
+    // Check if gist has multiple files
+    const fileCount = Object.keys(fullGist.files).length
+    
+    // Set the gist to load
+    gistToLoad.value = fullGist
+    
+    if (fileCount > 1) {
+      // Show file selector for multi-file gists
+      showFileSelector.value = true
+    } else {
+      // Single file - load directly
+      const filename = Object.keys(fullGist.files)[0]
+      await loadGistFile(filename)
+    }
+  } catch (error) {
+    console.error('Failed to load gist:', error)
+  }
+}
+
+const loadGistFile = async (filename: string) => {
+  if (!gistToLoad.value) return
+  
+  try {
+    // Get the file content
+    const file = gistToLoad.value.files[filename]
+    if (!file) return
+    
+    // Load the content into the editor
+    markdownInput.value = file.content || ''
+    currentGistFilename.value = filename
+    
+    // Update document title
+    if (gistToLoad.value.description) {
+      documentTitle.value = gistToLoad.value.description
+    }
+    
+    // Clear any shared document state
+    isViewingSharedDocument.value = false
+    sharedDocumentTitle.value = ''
+    
+    // Switch to editor tab
+    activeTab.value = 'editor'
+    
+    // Reset the gist to load
+    showFileSelector.value = false
+  } catch (error) {
+    console.error('Failed to load gist file:', error)
+  }
+}
+
+const handleGistSaved = (gist: Gist) => {
+  // Update the document title with gist description
+  if (gist.description) {
+    documentTitle.value = gist.description
+  }
+  
+  // TODO: Show success toast
+  console.log('Gist saved successfully:', gist.id)
+}
 
 </script>
