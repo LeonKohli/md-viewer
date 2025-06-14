@@ -93,10 +93,16 @@ export const useGists = () => {
       isLoading.value = true
       error.value = null
       
-      const gist = await $fetch<Gist>('/api/gists', {
+      const { data } = await useCsrfFetch<Gist>('/api/gists', {
         method: 'POST',
         body: request
       })
+      
+      if (!data.value) {
+        throw new Error('Failed to create gist')
+      }
+      
+      const gist = data.value
       
       // Add to beginning of list
       gists.value = [gist, ...gists.value]
@@ -120,10 +126,16 @@ export const useGists = () => {
       isLoading.value = true
       error.value = null
       
-      const gist = await $fetch<Gist>(`/api/gists/${gistId}`, {
+      const { data } = await useCsrfFetch<Gist>(`/api/gists/${gistId}`, {
         method: 'PATCH',
         body: request
       })
+      
+      if (!data.value) {
+        throw new Error('Failed to update gist')
+      }
+      
+      const gist = data.value
       
       // Update in local cache
       const index = gists.value.findIndex(g => g.id === gistId)
@@ -153,7 +165,7 @@ export const useGists = () => {
       isLoading.value = true
       error.value = null
       
-      await $fetch(`/api/gists/${gistId}`, {
+      await useCsrfFetch(`/api/gists/${gistId}`, {
         method: 'DELETE'
       })
       

@@ -156,6 +156,7 @@ export default defineNuxtConfig({
   },
   // Security configuration
   security: {
+    csrf: true, // Enable CSRF protection
     headers: {
       contentSecurityPolicy: {
         'img-src': ["'self'", "data:", "https:", "http:"],
