@@ -35,6 +35,7 @@ export interface MarkdownNavbarProps {
   renderedHtml?: string
   tocHeadings?: TocItem[]
   currentFilename?: string
+  hasUnsavedChanges?: boolean
 }
 
 export interface MarkdownNavbarEmits {
@@ -47,6 +48,8 @@ export interface MarkdownNavbarEmits {
   (e: 'openShare'): void
   (e: 'openGists'): void
   (e: 'saveGist'): void
+  (e: 'newGist'): void
+  (e: 'loadGist', gist: any): void
 }
 
 // Export options

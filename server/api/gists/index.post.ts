@@ -17,7 +17,7 @@ export default defineEventHandler(async (event) => {
     // Create gist using Octokit
     const { data } = await octokit.rest.gists.create({
       description: body.description || '',
-      public: body.public !== false, // Default to public
+      public: body.public === true, // Default to private - require explicit opt-in for public
       files: body.files
     })
     

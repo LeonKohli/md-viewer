@@ -3,6 +3,9 @@
     'h-screen flex flex-col bg-background text-foreground transition-colors duration-300 overflow-hidden',
     isFullscreen ? 'fixed inset-0 z-50' : ''
   ]">
+    <!-- Toast notifications -->
+    <ToastContainer />
+    
     <!-- Enhanced navbar for the markdown viewer -->
     <MarkdownNavbar 
       v-model:markdown-content="markdownContent"
@@ -10,6 +13,7 @@
       :rendered-html="renderedHtml"
       :toc-headings="tocHeadings"
       :current-filename="currentGistFilename"
+      :has-unsaved-changes="hasUnsavedChanges"
       @clear-content="handleClearContent"
       @load-sample="handleLoadSample"
       @reset-panels="handleResetPanels"
@@ -17,12 +21,17 @@
       @open-share="handleOpenShare"
       @open-gists="handleOpenGists"
       @save-gist="handleSaveGist"
+      @new-gist="handleNewGist"
+      @load-gist="handleLoadGist"
       class="flex-shrink-0"
     />
 
     <main class="flex-1 overflow-hidden" role="main">
       <slot />
     </main>
+    
+    <!-- Toast notifications -->
+    <ToastContainer />
   </div>
 </template>
 
@@ -38,6 +47,7 @@ const showShareDialog = useState('showShareDialog', () => false)
 const showGistManager = useState('showGistManager', () => false)
 const showSaveGistDialog = useState('showSaveGistDialog', () => false)
 const currentGistFilename = useState('currentGistFilename', () => '')
+const hasUnsavedChanges = useState('hasUnsavedChanges', () => false)
 
 // Event handlers
 const handleClearContent = () => {
@@ -68,11 +78,26 @@ const handleSaveGist = () => {
   // Check if there's content to save
   const content = markdownContent.value
   if (!content || content.trim() === '') {
-    // TODO: Show toast notification
-    console.log('No content to save as gist')
+    const { warning } = useToast()
+    warning('No content to save as gist')
     return
   }
   showSaveGistDialog.value = true
+}
+
+const handleNewGist = () => {
+  // Create a global state for forcing new gist
+  const forceNewGist = useState('forceNewGist', () => false)
+  forceNewGist.value = true
+  showSaveGistDialog.value = true
+}
+
+// Create a global state for gist loading events
+const gistToLoad = useState<any>('gistToLoad', () => null)
+
+const handleLoadGist = (gist: any) => {
+  // Set the gist in global state so the index page can handle it
+  gistToLoad.value = gist
 }
 
 // Add keyboard shortcuts

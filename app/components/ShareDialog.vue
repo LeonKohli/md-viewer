@@ -165,6 +165,8 @@ const {
   canShareViaURL
 } = useContentSharing()
 
+const toast = useToast()
+
 // Dialog state
 const isOpen = computed({
   get: () => props.modelValue,
@@ -238,6 +240,7 @@ watchEffect(async () => {
     } catch (error) {
       console.error('Failed to generate share URL:', error)
       compressionError.value = error instanceof Error ? error.message : 'Failed to compress document'
+      toast.error('Failed to generate share URL')
     }
   } else if (isOpen.value && !canShare.value) {
     // Document is too large
@@ -254,10 +257,12 @@ const copyLink = async () => {
   
   if (success) {
     copied.value = true
+    // Checkmark icon is enough feedback
     setTimeout(() => {
       copied.value = false
     }, 2000)
   }
+  // If failed, no checkmark = didn't work
   
   copying.value = false
 }
@@ -271,6 +276,7 @@ const toggleQR = async () => {
   
   // Check if URL is too long for QR code
   if (shareUrl.value.length > 2953) {
+    toast.warning('URL is too long for QR code generation')
     console.warn('URL too long for QR code generation')
     return
   }
@@ -280,6 +286,7 @@ const toggleQR = async () => {
     try {
       qrCodeUrl.value = await generateQRCode(shareUrl.value)
     } catch (error) {
+      toast.error('Failed to generate QR code')
       console.error('Failed to generate QR code:', error)
     }
     generatingQR.value = false

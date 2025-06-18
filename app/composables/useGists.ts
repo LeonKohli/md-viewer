@@ -7,6 +7,10 @@ export const useGists = () => {
   const isLoading = useState('gistsLoading', () => false)
   const error = useState<string | null>('gistsError', () => null)
   
+  // Track last synced content to detect changes relative to gist
+  const lastSyncedContent = useState<string>('lastSyncedGistContent', () => '')
+  const lastSyncedFilename = useState<string>('lastSyncedGistFilename', () => '')
+  
   // Pagination state
   const currentPage = useState('gistsPage', () => 1)
   const hasMore = useState('gistsHasMore', () => true)
@@ -93,16 +97,10 @@ export const useGists = () => {
       isLoading.value = true
       error.value = null
       
-      const { data } = await useCsrfFetch<Gist>('/api/gists', {
+      const gist = await $fetch<Gist>('/api/gists', {
         method: 'POST',
         body: request
       })
-      
-      if (!data.value) {
-        throw new Error('Failed to create gist')
-      }
-      
-      const gist = data.value
       
       // Add to beginning of list
       gists.value = [gist, ...gists.value]
@@ -126,16 +124,10 @@ export const useGists = () => {
       isLoading.value = true
       error.value = null
       
-      const { data } = await useCsrfFetch<Gist>(`/api/gists/${gistId}`, {
+      const gist = await $fetch<Gist>(`/api/gists/${gistId}`, {
         method: 'PATCH',
         body: request
       })
-      
-      if (!data.value) {
-        throw new Error('Failed to update gist')
-      }
-      
-      const gist = data.value
       
       // Update in local cache
       const index = gists.value.findIndex(g => g.id === gistId)
@@ -165,7 +157,7 @@ export const useGists = () => {
       isLoading.value = true
       error.value = null
       
-      await useCsrfFetch(`/api/gists/${gistId}`, {
+      await $fetch(`/api/gists/${gistId}`, {
         method: 'DELETE'
       })
       
@@ -262,6 +254,50 @@ export const useGists = () => {
    */
   const clearCurrentGist = () => {
     currentGist.value = null
+    lastSyncedContent.value = ''
+    lastSyncedFilename.value = ''
+  }
+
+  /**
+   * Set the sync point when content is loaded or saved
+   */
+  const setSyncPoint = (content: string, filename: string) => {
+    lastSyncedContent.value = content
+    lastSyncedFilename.value = filename
+  }
+
+  /**
+   * Check if there are changes relative to the gist
+   */
+  const hasGistChanges = (currentContent: string, currentFilename: string): boolean => {
+    if (!currentGist.value) return false
+    
+    // Check if we're editing the same file
+    if (currentFilename !== lastSyncedFilename.value) return true
+    
+    // Check if content has changed
+    return currentContent !== lastSyncedContent.value
+  }
+
+  /**
+   * Pull the latest content from GitHub
+   */
+  const pullFromGist = async (gistId: string, filename?: string): Promise<{ content: string; filename: string }> => {
+    try {
+      const gist = await getGist(gistId)
+      if (!gist) throw new Error('Gist not found')
+      
+      const content = getGistContent(gist, filename)
+      const actualFilename = filename || Object.keys(gist.files)[0] || 'untitled.md'
+      
+      // Update sync point
+      setSyncPoint(content, actualFilename)
+      
+      return { content, filename: actualFilename }
+    } catch (err) {
+      console.error('Failed to pull from gist:', err)
+      throw err
+    }
   }
 
   return {
@@ -282,6 +318,11 @@ export const useGists = () => {
     loadMore,
     reset,
     getGistContent,
-    clearCurrentGist
+    clearCurrentGist,
+    setSyncPoint,
+    hasGistChanges,
+    pullFromGist,
+    lastSyncedContent: readonly(lastSyncedContent),
+    lastSyncedFilename: readonly(lastSyncedFilename)
   }
 }

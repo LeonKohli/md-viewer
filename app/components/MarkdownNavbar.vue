@@ -5,9 +5,6 @@
       <div class="flex items-center gap-2">
         <Icon name="lucide:file-text" class="w-4 h-4 md:w-5 md:h-5 text-primary" />
         <h1 class="text-base md:text-lg font-semibold">Markdown</h1>
-        <span v-if="currentFilename" class="text-xs text-muted-foreground hidden sm:inline">
-          · {{ currentFilename }}
-        </span>
       </div>
       
       <!-- Toolbar Actions -->
@@ -114,6 +111,20 @@
         <!-- Separator -->
         <div class="hidden sm:block w-px h-5 bg-border/60 mx-0.5" aria-hidden="true" />
         
+        <!-- Gist Menu -->
+        <GistMenu
+          :has-unsaved-changes="hasUnsavedChanges"
+          :markdown-content="markdownContent"
+          :current-filename="currentFilename"
+          @save-gist="$emit('saveGist')"
+          @new-gist="$emit('newGist')"
+          @browse-gists="$emit('openGists')"
+          @load-gist="(gist) => $emit('loadGist', gist)"
+        />
+        
+        <!-- Separator -->
+        <div class="hidden sm:block w-px h-5 bg-border/60 mx-0.5" aria-hidden="true" />
+        
         <!-- View Controls: Color Mode & Fullscreen -->
         <!-- Color mode toggle -->
         <ColorModeToggle class="h-9 md:h-10 touch-target" />
@@ -161,15 +172,6 @@
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem @click="handleOpenGists">
-                    <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
-                    My Gists
-                  </DropdownMenuItem>
-                  <DropdownMenuItem @click="handleSaveGist">
-                    <Icon name="lucide:save" class="w-4 h-4 mr-2" />
-                    Save as Gist
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
                   <DropdownMenuItem @click="handleLogout">
                     <Icon name="lucide:log-out" class="w-4 h-4 mr-2" />
                     <span>Logout</span>
@@ -177,10 +179,7 @@
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
-            <Button v-else @click="handleLogin" size="sm" variant="outline" class="gap-2">
-              <Icon name="lucide:github" class="w-4 h-4" />
-              <span class="hidden sm:inline">Login</span>
-            </Button>
+            <!-- Login button removed - now in GistMenu -->
           </template>
           <template #placeholder>
             <!-- Minimal placeholder to prevent layout shift -->
@@ -479,13 +478,6 @@ const openShareDialog = () => {
 }
 
 /**
- * Handle user login by redirecting to GitHub OAuth.
- */
-const handleLogin = () => {
-  navigateTo('/api/auth/github', { external: true })
-}
-
-/**
  * Handle user logout.
  */
 const handleLogout = async () => {
@@ -493,20 +485,6 @@ const handleLogout = async () => {
   await clear()
   // Just reload the page after logout
   await navigateTo('/')
-}
-
-/**
- * Open the gists manager.
- */
-const handleOpenGists = () => {
-  emit('openGists')
-}
-
-/**
- * Save current content as a gist.
- */
-const handleSaveGist = () => {
-  emit('saveGist')
 }
 
 // Remove auto-loading of sample content

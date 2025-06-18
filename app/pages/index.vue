@@ -19,14 +19,14 @@
     <GistManager
       v-model="showGistManager"
       @select="loadGist"
-      @create="showSaveGistDialog = true"
+      @create="handleCreateNewGist"
     />
     
-    <!-- Save Gist Dialog (Multi-file) -->
-    <SaveGistDialogMulti
+    <!-- Save Gist Dialog -->
+    <SaveGistDialog
       v-model="showSaveGistDialog"
       :content="markdownInput"
-      :existing-gist="currentGist as Gist"
+      :existing-gist="forceNewGist ? null : (currentGist as Gist)"
       :current-filename="currentGistFilename"
       @saved="handleGistSaved"
       @createNew="clearCurrentGist"
@@ -127,6 +127,11 @@
           <div class="flex items-center gap-2">
             <Icon name="lucide:file-text" class="w-4 h-4" />
             <span class="hidden md:inline">Editor</span>
+            <!-- Show current filename when connected to gist -->
+            <span v-if="currentGist && currentGistFilename" class="text-xs text-muted-foreground">
+              <span class="mx-1">·</span>
+              {{ currentGistFilename }}
+            </span>
           </div>
           <div class="flex items-center gap-2">
             <Transition
@@ -226,14 +231,28 @@
           <div class="flex items-center gap-3">
             <span>{{ stats.characters }} characters</span>
             <span>{{ stats.lines }} lines</span>
+            <!-- Gist status indicator -->
+            <ClientOnly>
+              <GistStatusBar 
+                v-if="currentGist"
+                :current-gist="currentGist as Gist"
+                :last-saved="lastGistSaveTime"
+                :is-syncing="isSavingGist"
+                :current-filename="currentGistFilename"
+                class="border-l pl-3"
+              />
+            </ClientOnly>
           </div>
-          <SaveStatusIndicator
-            :save-status="saveStatus"
-            :save-error="saveError"
-            :last-save-time-ago="lastSaveTimeAgo?.value || null"
-            :has-unsaved-changes="hasUnsavedChanges"
-            :has-content="markdownInput.length > 0"
-          />
+          <ClientOnly>
+            <SaveStatusIndicator
+              :save-status="saveStatus"
+              :save-error="saveError"
+              :last-save-time-ago="lastSaveTimeAgo?.value || null"
+              :has-unsaved-changes="hasUnsavedChanges"
+              :has-content="markdownInput.length > 0"
+              :is-connected-to-gist="!!currentGist"
+            />
+          </ClientOnly>
         </div>
       </div>
 
@@ -401,7 +420,7 @@ import type { TocItem } from '~/composables/useTableOfContents'
 import type { Gist, GistFile } from '~/types/gist'
 import ShareDialog from '~/components/ShareDialog.vue'
 import GistManager from '~/components/GistManager.vue'
-import SaveGistDialogMulti from '~/components/SaveGistDialogMulti.vue'
+import SaveGistDialog from '~/components/SaveGistDialog.vue'
 import GistFileSelector from '~/components/GistFileSelector.vue'
 
 // SEO Meta
@@ -445,7 +464,8 @@ const {
   toggleTask
 } = useMarkdownEditor()
 
-const { currentGist, getGist, getGistContent, clearCurrentGist } = useGists()
+const { currentGist, getGist, getGistContent, clearCurrentGist, updateGist, setSyncPoint } = useGists()
+const toast = useToast()
 
 const { 
   editorSize, 
@@ -612,6 +632,25 @@ const showSaveGistDialog = useState('showSaveGistDialog', () => false)
 const showFileSelector = ref(false)
 const gistToLoad = ref<Gist | null>(null)
 const currentGistFilename = useState('currentGistFilename', () => '')
+const lastGistSaveTime = ref<Date | null>(null)
+const isSavingGist = ref(false)
+const forceNewGist = useState('forceNewGist', () => false)
+
+// Computed property for multi-file gist detection
+const isMultiFileGist = computed(() => {
+  if (!currentGist.value) return false
+  return Object.keys(currentGist.value.files).length > 1
+})
+
+// Watch for gist loading events from the layout
+const gistToLoadFromLayout = useState<any>('gistToLoad', () => null)
+
+// Reset forceNewGist when dialog closes
+watch(showSaveGistDialog, (isOpen) => {
+  if (!isOpen) {
+    forceNewGist.value = false
+  }
+})
 
 // Local state
 const isFocusMode = ref(false)
@@ -704,6 +743,38 @@ const handlePaste = () => {
   })
 }
 
+// Quick save to current gist
+const handleQuickSaveGist = async () => {
+  if (!currentGist.value || isSavingGist.value) return
+  
+  isSavingGist.value = true
+  try {
+    const result = await updateGist(currentGist.value.id, {
+      files: {
+        [currentGistFilename.value || 'untitled.md']: {
+          content: markdownInput.value
+        }
+      }
+    })
+    
+    if (result.success) {
+      lastGistSaveTime.value = new Date()
+      // Update sync point to mark this as the last saved state
+      setSyncPoint(markdownInput.value, currentGistFilename.value || 'untitled.md')
+      // Save the content locally as well to sync states
+      saveNow()
+      // GistStatusBar already shows save animation
+    } else {
+      toast.error(result.error || 'Failed to save gist')
+    }
+  } catch (error) {
+    toast.error('Failed to save gist')
+    // Log error for debugging but don't show to user (already showing toast)
+  } finally {
+    isSavingGist.value = false
+  }
+}
+
 // Keyboard shortcuts - define handler outside to ensure proper cleanup
 const handleKeydown = (e: KeyboardEvent) => {
   // Clear editor: Ctrl/Cmd + Shift + K
@@ -715,7 +786,12 @@ const handleKeydown = (e: KeyboardEvent) => {
   // Manual save: Ctrl/Cmd + S
   if ((e.ctrlKey || e.metaKey) && e.key === 's') {
     e.preventDefault()
-    saveNow()
+    // If connected to a gist, save to gist instead
+    if (currentGist.value) {
+      handleQuickSaveGist()
+    } else {
+      saveNow()
+    }
   }
   
   // Toggle split mode: Ctrl/Cmd + Alt + V (vertical) or H (horizontal)
@@ -799,10 +875,38 @@ onMounted(() => {
 
 // Clean up on unmount is handled automatically by useEventListener
 
+// Watch for gist load events from the layout
+watch(gistToLoadFromLayout, (gist) => {
+  if (gist) {
+    loadGist(gist)
+    // Clear the state after handling
+    gistToLoadFromLayout.value = null
+  }
+})
+
 // Gist handlers
-const loadGist = async (gist: Gist) => {
+const loadGist = async (gist: Gist & { tempContent?: string; tempFilename?: string }) => {
   try {
-    // Get the full gist data
+    // Check if this is a pull/restore/switch operation with temporary content
+    if (gist.tempContent !== undefined && gist.tempFilename) {
+      // Direct load without fetching from API
+      markdownInput.value = gist.tempContent
+      currentGistFilename.value = gist.tempFilename
+      
+      // Update sync point for the new file to avoid false "unsaved changes" warnings
+      setSyncPoint(gist.tempContent, gist.tempFilename)
+      
+      // Clear any shared document state
+      isViewingSharedDocument.value = false
+      sharedDocumentTitle.value = ''
+      
+      // Switch to editor tab
+      activeTab.value = 'editor'
+      
+      return
+    }
+    
+    // Normal gist loading flow
     const fullGist = await getGist(gist.id)
     if (!fullGist) return
     
@@ -821,7 +925,8 @@ const loadGist = async (gist: Gist) => {
       await loadGistFile(filename || '')
     }
   } catch (error) {
-    console.error('Failed to load gist:', error)
+    toast.error('Failed to load gist')
+    // Log error for debugging
   }
 }
 
@@ -834,8 +939,12 @@ const loadGistFile = async (filename: string) => {
     if (!file) return
     
     // Load the content into the editor
-    markdownInput.value = file?.content || ''
+    const content = file?.content || ''
+    markdownInput.value = content
     currentGistFilename.value = filename
+    
+    // Set the sync point to track changes from this baseline
+    setSyncPoint(content, filename)
     
     // Update document title
     if (gistToLoad.value.description) {
@@ -852,18 +961,41 @@ const loadGistFile = async (filename: string) => {
     // Reset the gist to load
     showFileSelector.value = false
   } catch (error) {
-    console.error('Failed to load gist file:', error)
+    toast.error('Failed to load gist file')
+    // Log error for debugging
   }
 }
 
+const handleCreateNewGist = () => {
+  // Force the dialog to create a new gist instead of updating
+  forceNewGist.value = true
+  showSaveGistDialog.value = true
+}
+
 const handleGistSaved = (gist: Gist) => {
+  // Reset the force new flag
+  forceNewGist.value = false
+  
   // Update the document title with gist description
   if (gist.description) {
     documentTitle.value = gist.description
   }
   
-  // TODO: Show success toast
-  console.log('Gist saved successfully:', gist.id)
+  // Find the file that contains the current editor content
+  // Look for the markdown file that was just saved
+  const files = Object.keys(gist.files)
+  const mdFile = files.find(f => f.endsWith('.md'))
+  if (mdFile) {
+    currentGistFilename.value = mdFile
+  } else if (files.length > 0) {
+    // Fallback to first file if no .md file found
+    currentGistFilename.value = files[0] || ''
+  }
+  
+  // Update sync point to reflect the saved state
+  setSyncPoint(markdownInput.value, currentGistFilename.value || 'untitled.md')
+  
+  // The SaveGistDialog already shows success feedback
 }
 
 </script>

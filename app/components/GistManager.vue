@@ -26,7 +26,7 @@
         <div class="flex-1 overflow-y-auto">
           <div v-if="error" class="text-center py-8">
             <Alert variant="destructive">
-              <Icon name="lucide:alert-circle" class="w-4 h-4" />
+              <AlertCircle class="h-4 w-4" />
               <AlertTitle>Error</AlertTitle>
               <AlertDescription>{{ error }}</AlertDescription>
             </Alert>
@@ -127,6 +127,7 @@
 <script setup lang="ts">
 import type { Gist } from '~/types/gist'
 import { useGists } from '~/composables/useGists'
+import { AlertCircle } from 'lucide-vue-next'
 import {
   Dialog,
   DialogContent,
@@ -154,6 +155,7 @@ const isOpen = computed({
 })
 
 const { gists, isLoading, error, hasMore, fetchGists, deleteGist, loadMore } = useGists()
+const toast = useToast()
 const searchQuery = ref('')
 
 // Filtered gists based on search
@@ -178,14 +180,13 @@ watch(isOpen, async (open) => {
   }
 })
 
-// Get a display title for the gist
+// Get a display title for the gist (matching GitHub's behavior)
 const getGistTitle = (gist: Gist): string => {
-  const filenames = Object.keys(gist.files)
-  if (filenames.length === 1) {
-    return filenames[0] || 'Untitled'
-  }
-  const mdFile = filenames.find(f => f.endsWith('.md'))
-  return mdFile || filenames[0] || 'Untitled'
+  // GitHub always shows gists by their first file alphabetically
+  const files = Object.keys(gist.files).sort()
+  const firstFile = files[0] || 'Untitled'
+  // Optionally remove .md extension for display
+  return firstFile.endsWith('.md') ? firstFile.slice(0, -3) : firstFile
 }
 
 // Format date for display
@@ -225,8 +226,9 @@ const handleCreateNew = () => {
 const handleCopyLink = async (gist: Gist) => {
   try {
     await navigator.clipboard.writeText(gist.html_url)
-    // TODO: Show toast notification
+    // Silent success - user clicked it, it worked
   } catch (err) {
+    toast.error('Failed to copy link')
     console.error('Failed to copy link:', err)
   }
 }
@@ -238,8 +240,10 @@ const handleDeleteGist = async (gist: Gist) => {
   }
   
   const result = await deleteGist(gist.id)
-  if (!result.success) {
-    // TODO: Show error toast
+  if (result.success) {
+    toast.success('Gist deleted successfully')
+  } else {
+    toast.error(result.error || 'Failed to delete gist')
     console.error('Failed to delete gist:', result.error)
   }
 }
