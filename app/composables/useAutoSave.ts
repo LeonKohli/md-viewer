@@ -17,7 +17,8 @@ import {
   useWindowFocus,
   useNetwork,
   usePageLeave,
-  useIntervalFn
+  useIntervalFn,
+  useTimeoutFn
 } from '@vueuse/core'
 
 const STORAGE_KEY = 'markdown-editor-content'
@@ -181,11 +182,11 @@ export const useAutoSave = () => {
       saveStatus.value = 'saved'
       
       // Keep saved status visible briefly
-      setTimeout(() => {
+      const { start: clearSavedStatus } = useTimeoutFn(() => {
         if (saveStatus.value === 'saved') {
           saveStatus.value = 'idle'
         }
-      }, 2000)
+      }, 2000, { immediate: true })
       
       return true
     } catch (e) {
@@ -204,15 +205,19 @@ export const useAutoSave = () => {
       
       // Retry once after a delay
       if (!isRetry) {
-        setTimeout(() => performSave(content, true), 1000)
+        const { start: retryLater } = useTimeoutFn(
+          () => performSave(content, true),
+          1000,
+          { immediate: true }
+        )
       }
       
       // Keep error visible longer
-      setTimeout(() => {
+      const { start: clearErrorStatus } = useTimeoutFn(() => {
         if (saveStatus.value === 'error') {
           saveStatus.value = 'idle'
         }
-      }, 5000)
+      }, 5000, { immediate: true })
       
       return false
     }

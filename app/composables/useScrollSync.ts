@@ -1,4 +1,4 @@
-import { useEventListener } from '@vueuse/core'
+import { useEventListener, useTimeoutFn } from '@vueuse/core'
 
 export function useScrollSync() {
   // Scroll sync state
@@ -13,7 +13,6 @@ export function useScrollSync() {
   
   // Track which panel is actively being scrolled
   let activePanel: 'editor' | 'preview' | null = null
-  let scrollEndTimer: NodeJS.Timeout | null = null
   let isMouseDown = false
   
   // Track pending sync operations to prevent duplicate rAF calls
@@ -67,17 +66,19 @@ export function useScrollSync() {
   }
   
   // Handle scroll end detection
-  const handleScrollEnd = () => {
-    if (scrollEndTimer) {
-      clearTimeout(scrollEndTimer)
-    }
-    // Longer timeout for scrollbar dragging
-    const timeout = isMouseDown ? 300 : 150
-    scrollEndTimer = setTimeout(() => {
+  const { start: startScrollEndTimer, stop: stopScrollEndTimer } = useTimeoutFn(
+    () => {
       activePanel = null
       pendingEditorSync = false
       pendingPreviewSync = false
-    }, timeout)
+    },
+    () => isMouseDown ? 300 : 150, // Dynamic timeout based on mouse state
+    { immediate: false }
+  )
+  
+  const handleScrollEnd = () => {
+    stopScrollEndTimer()
+    startScrollEndTimer()
   }
   
   // Sync editor scroll to preview using single rAF execution
@@ -149,14 +150,20 @@ export function useScrollSync() {
     isMouseDown = true
   }
   
-  const handleMouseUp = () => {
-    isMouseDown = false
-    // Clear active panel after mouse up with delay
-    setTimeout(() => {
+  // Mouse up handler with timeout
+  const { start: startMouseUpTimer } = useTimeoutFn(
+    () => {
       if (!isMouseDown) {
         activePanel = null
       }
-    }, 100)
+    },
+    100,
+    { immediate: false }
+  )
+  
+  const handleMouseUp = () => {
+    isMouseDown = false
+    startMouseUpTimer()
   }
   
   // Set up listeners
@@ -246,9 +253,11 @@ export function useScrollSync() {
     }
     
     // Clear after animation
-    setTimeout(() => {
-      activePanel = null
-    }, 800)
+    const { start: clearActivePanelAfterScroll } = useTimeoutFn(
+      () => { activePanel = null },
+      800,
+      { immediate: true }
+    )
   }
   
   // Computed properties
@@ -268,9 +277,7 @@ export function useScrollSync() {
   
   // Cleanup on unmount
   onUnmounted(() => {
-    if (scrollEndTimer) {
-      clearTimeout(scrollEndTimer)
-    }
+    stopScrollEndTimer()
     pendingEditorSync = false
     pendingPreviewSync = false
   })

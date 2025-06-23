@@ -11,7 +11,7 @@ export function useMarkdownEditor() {
   const { $md } = useNuxtApp()
   
   // Global state
-  const globalMarkdownContent = useState('markdownContent', () => '')
+  const markdownContent = useState('markdownContent', () => '')
   
   // Local reactive state
   const markdownInput = ref('')
@@ -46,7 +46,7 @@ export function useMarkdownEditor() {
     const isSharedDocument = route.hash.startsWith('#share/')
     
     // Only check for recoverable content if not loading a shared document
-    if (!globalMarkdownContent.value && !isSharedDocument) {
+    if (!markdownContent.value && !isSharedDocument) {
       const recoverable = getRecoverableContent()
       if (recoverable) {
         recoverableContent.value = recoverable
@@ -209,11 +209,11 @@ export function useMarkdownEditor() {
   
   // Sync with global state
   watchSyncEffect(() => {
-    globalMarkdownContent.value = markdownInput.value
+    markdownContent.value = markdownInput.value
   })
   
   // Watch for external changes
-  watch(globalMarkdownContent, (newValue) => {
+  watch(markdownContent, (newValue) => {
     if (newValue !== markdownInput.value) {
       markdownInput.value = newValue
     }
@@ -226,8 +226,8 @@ export function useMarkdownEditor() {
   useEventListener(textareaElement, 'mouseup', handleTextareaInteraction)
   
   // Initialize content
-  if (globalMarkdownContent.value) {
-    markdownInput.value = globalMarkdownContent.value
+  if (markdownContent.value) {
+    markdownInput.value = markdownContent.value
   }
   
   return {
