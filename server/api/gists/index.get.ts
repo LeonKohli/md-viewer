@@ -13,11 +13,13 @@ export default defineEventHandler(async (event) => {
     })
     
     return data
-  } catch (error: any) {
+  } catch (error) {
     // Octokit provides better error messages
+    const status = (error as any).status || 500
+    const message = error instanceof Error ? error.message : 'Failed to fetch gists'
     throw createError({
-      statusCode: error.status || 500,
-      statusMessage: error.message || 'Failed to fetch gists'
+      statusCode: status,
+      statusMessage: message
     })
   }
 })

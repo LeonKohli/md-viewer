@@ -20,10 +20,12 @@ export default defineEventHandler(async (event) => {
     
     // Return success response
     return { success: true }
-  } catch (error: any) {
+  } catch (error) {
+    const status = (error as any).status || 500
+    const message = error instanceof Error ? error.message : 'Failed to delete gist'
     throw createError({
-      statusCode: error.status || 500,
-      statusMessage: error.message || 'Failed to delete gist'
+      statusCode: status,
+      statusMessage: message
     })
   }
 })

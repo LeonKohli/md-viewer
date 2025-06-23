@@ -23,26 +23,22 @@ export default defineEventHandler(async (event) => {
     }
     
     // Build update payload - only include fields that are provided
-    const updatePayload: any = {
-      gist_id: gistId
-    }
-    
-    if (body.description !== undefined) {
-      updatePayload.description = body.description
-    }
-    
-    if (body.files) {
-      updatePayload.files = body.files
+    const updatePayload = {
+      gist_id: gistId,
+      ...(body.description !== undefined && { description: body.description }),
+      ...(body.files && { files: body.files })
     }
     
     // Update gist using Octokit
     const { data } = await octokit.rest.gists.update(updatePayload)
     
     return data
-  } catch (error: any) {
+  } catch (error) {
+    const status = (error as any).status || 500
+    const message = error instanceof Error ? error.message : 'Failed to update gist'
     throw createError({
-      statusCode: error.status || 500,
-      statusMessage: error.message || 'Failed to update gist'
+      statusCode: status,
+      statusMessage: message
     })
   }
 })

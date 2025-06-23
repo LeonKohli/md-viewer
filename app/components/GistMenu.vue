@@ -124,7 +124,7 @@
                 <DropdownMenuItem 
                   v-for="gist in recentGists" 
                   :key="gist.id"
-                  @click="handleLoadGist(gist)"
+                  @click="handleLoadGist(gist as Readonly<Gist>)"
                   class="text-sm"
                 >
                   <Icon name="lucide:file-text" class="w-4 h-4 mr-2 flex-shrink-0" />
@@ -222,7 +222,7 @@
             <DropdownMenuItem 
               v-for="gist in recentGists" 
               :key="gist.id"
-              @click="handleLoadGist(gist)"
+              @click="handleLoadGist(gist as Readonly<Gist>)"
               class="text-sm"
             >
               <Icon name="lucide:file-text" class="w-4 h-4 mr-2 flex-shrink-0" />
@@ -282,6 +282,13 @@
 
 <script setup lang="ts">
 import type { Gist, GistFile } from '~/types/gist'
+
+// Extended Gist type for loading with temporary content
+interface GistWithTempData extends Readonly<Gist> {
+  tempContent?: string
+  tempFilename?: string
+}
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -318,7 +325,7 @@ const emit = defineEmits<{
   'save-gist': []
   'new-gist': []
   'browse-gists': []
-  'load-gist': [gist: Gist]
+  'load-gist': [gist: GistWithTempData]
 }>()
 
 // Auth state
@@ -466,7 +473,7 @@ const handleSyncFromGitHub = async () => {
     const { content, filename } = await pullFromGist(currentGist.value.id, props.currentFilename)
     
     // Emit event to update the content in the parent component
-    emit('load-gist', Object.assign({}, currentGist.value, { tempContent: content, tempFilename: filename }) as any)
+    emit('load-gist', Object.assign({}, currentGist.value, { tempContent: content, tempFilename: filename }) as GistWithTempData)
     
     // Content will update in editor - that's enough feedback
   } catch (error) {
@@ -524,7 +531,7 @@ const handleSwitchFile = (filename: string) => {
   emit('load-gist', Object.assign({}, currentGist.value, { 
     tempContent: file?.content || '', 
     tempFilename: filename 
-  }) as any)
+  }) as GistWithTempData)
   
   // File will load in editor - no need for toast
 }
@@ -601,13 +608,13 @@ const handleBrowseGists = () => {
   emit('browse-gists')
 }
 
-const handleLoadGist = (gist: Gist) => {
-  emit('load-gist', gist)
+const handleLoadGist = (gist: Readonly<Gist>) => {
+  emit('load-gist', gist as GistWithTempData)
   mobileMenuOpen.value = false
 }
 
 // Helper functions
-const getGistTitle = (gist: any): string => {
+const getGistTitle = (gist: Pick<Gist, 'files'>): string => {
   // GitHub always shows gists by their first file alphabetically
   const files = Object.keys(gist.files).sort()
   const firstFile = files[0] || 'Untitled'

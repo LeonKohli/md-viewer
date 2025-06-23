@@ -117,7 +117,7 @@ export const useToast = () => {
     messages: {
       loading?: string
       success?: string | ((data: T) => string)
-      error?: string | ((error: any) => string)
+      error?: string | ((error: unknown) => string)
     }
   ): Promise<T> => {
     const loadingId = messages.loading 

@@ -25,7 +25,7 @@ export async function getUserOctokit(event: H3Event): Promise<Octokit> {
     },
     // Enable request throttling to avoid rate limits
     throttle: {
-      onRateLimit: (retryAfter: number, options: any, octokit: Octokit, retryCount: number) => {
+      onRateLimit: (retryAfter: number, options: { method: string; url: string }, octokit: Octokit, retryCount: number) => {
         octokit.log.warn(`Request quota exhausted for request ${options.method} ${options.url}`)
         
         if (retryCount < 1) {
@@ -34,7 +34,7 @@ export async function getUserOctokit(event: H3Event): Promise<Octokit> {
           return true
         }
       },
-      onSecondaryRateLimit: (retryAfter: number, options: any, octokit: Octokit) => {
+      onSecondaryRateLimit: (retryAfter: number, options: { method: string; url: string }, octokit: Octokit) => {
         // Does not retry, only logs a warning
         octokit.log.warn(`SecondaryRateLimit detected for request ${options.method} ${options.url}`)
       }

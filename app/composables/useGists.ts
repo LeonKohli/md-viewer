@@ -1,5 +1,16 @@
 import type { Gist, GistFile, CreateGistRequest, UpdateGistRequest, GistOperationResult, GistListOptions } from '~/types/gist'
 
+// Type guard for fetch errors
+interface FetchError {
+  data?: {
+    statusMessage?: string
+  }
+}
+
+const isFetchError = (error: unknown): error is FetchError => {
+  return typeof error === 'object' && error !== null && 'data' in error
+}
+
 export const useGists = () => {
   // State - cast to handle readonly types from Octokit
   const gists = useState<Gist[]>('gists', () => [])
@@ -55,8 +66,13 @@ export const useGists = () => {
       }
       
       return gists.value
-    } catch (err: any) {
-      error.value = err.data?.statusMessage || 'Failed to fetch gists'
+    } catch (err) {
+      const errorMessage = isFetchError(err) 
+        ? err.data?.statusMessage || 'Failed to fetch gists'
+        : err instanceof Error 
+          ? err.message 
+          : 'Failed to fetch gists'
+      error.value = errorMessage
       throw err
     } finally {
       isLoading.value = false
@@ -81,8 +97,13 @@ export const useGists = () => {
       }
       
       return gist
-    } catch (err: any) {
-      error.value = err.data?.statusMessage || 'Failed to fetch gist'
+    } catch (err) {
+      const errorMessage = isFetchError(err) 
+        ? err.data?.statusMessage || 'Failed to fetch gist'
+        : err instanceof Error 
+          ? err.message 
+          : 'Failed to fetch gist'
+      error.value = errorMessage
       throw err
     } finally {
       isLoading.value = false
@@ -107,8 +128,12 @@ export const useGists = () => {
       currentGist.value = gist
       
       return { success: true, gist }
-    } catch (err: any) {
-      const errorMessage = err.data?.statusMessage || 'Failed to create gist'
+    } catch (err) {
+      const errorMessage = isFetchError(err) 
+        ? err.data?.statusMessage || 'Failed to create gist'
+        : err instanceof Error 
+          ? err.message 
+          : 'Failed to create gist'
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
@@ -140,8 +165,12 @@ export const useGists = () => {
       }
       
       return { success: true, gist }
-    } catch (err: any) {
-      const errorMessage = err.data?.statusMessage || 'Failed to update gist'
+    } catch (err) {
+      const errorMessage = isFetchError(err) 
+        ? err.data?.statusMessage || 'Failed to update gist'
+        : err instanceof Error 
+          ? err.message 
+          : 'Failed to update gist'
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
@@ -169,8 +198,12 @@ export const useGists = () => {
       }
       
       return { success: true }
-    } catch (err: any) {
-      const errorMessage = err.data?.statusMessage || 'Failed to delete gist'
+    } catch (err) {
+      const errorMessage = isFetchError(err) 
+        ? err.data?.statusMessage || 'Failed to delete gist'
+        : err instanceof Error 
+          ? err.message 
+          : 'Failed to delete gist'
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {

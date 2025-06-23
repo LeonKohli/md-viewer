@@ -19,10 +19,12 @@ export default defineEventHandler(async (event) => {
     })
     
     return data
-  } catch (error: any) {
+  } catch (error) {
+    const status = (error as any).status || 500
+    const message = error instanceof Error ? error.message : 'Failed to fetch gist'
     throw createError({
-      statusCode: error.status || 500,
-      statusMessage: error.message || 'Failed to fetch gist'
+      statusCode: status,
+      statusMessage: message
     })
   }
 })
