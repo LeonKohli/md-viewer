@@ -5,9 +5,6 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   modules: ['@nuxt/icon', 'shadcn-nuxt', '@vueuse/nuxt', '@nuxtjs/color-mode', '@nuxtjs/seo', '@nuxt/scripts', '@vite-pwa/nuxt', 'nuxt-security', 'nuxt-auth-utils'],
-  future: {
-    compatibilityVersion: 4,
-  },
   // Basic SEO site configuration
   site: {
     name: 'Markdown Editor',
