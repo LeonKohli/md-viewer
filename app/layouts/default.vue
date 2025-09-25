@@ -49,15 +49,6 @@ const showSaveGistDialog = useState('showSaveGistDialog', () => false)
 const currentGistFilename = useState('currentGistFilename', () => '')
 const hasUnsavedChanges = useState('hasUnsavedChanges', () => false)
 
-// Event handlers
-const handleClearContent = () => {
-  // Additional logic can be added here if needed
-}
-
-const handleLoadSample = () => {
-  // Additional logic can be added here if needed
-}
-
 const handleResetPanels = () => {
   resetPanelsEvent.value = Date.now()
 }
