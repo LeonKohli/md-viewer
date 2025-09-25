@@ -29,22 +29,37 @@
         <div class="hidden sm:block w-px h-5 bg-border/60 mx-0.5" aria-hidden="true" />
         
         <!-- Content Actions: Copy, Share, Export -->
-        <!-- Copy button with feedback -->
-        <Button 
-          variant="ghost" 
-          size="sm"
-          @click="copyMarkdown"
-          :title="copied ? 'Copied!' : 'Copy markdown to clipboard'"
-          aria-label="Copy markdown content to clipboard"
-          class="h-9 md:h-10 touch-target"
-        >
-          <Icon 
-            :name="copied ? 'lucide:check' : 'lucide:copy'" 
-            class="w-4 h-4 sm:mr-1.5 transition-all duration-200"
-            :class="copied ? 'text-green-600 dark:text-green-400' : ''"
-          />
-          <span class="hidden sm:inline">{{ copied ? 'Copied!' : 'Copy' }}</span>
-        </Button>
+        <!-- Copy dropdown with format selection -->
+        <DropdownMenu>
+          <DropdownMenuTrigger as-child>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              title="Copy content"
+              aria-label="Copy content menu"
+              aria-haspopup="true"
+              class="h-9 md:h-10 touch-target"
+            >
+              <Icon name="lucide:copy" class="w-4 h-4 sm:mr-1.5" />
+              <span class="hidden sm:inline">Copy</span>
+              <Icon name="lucide:chevron-down" class="w-3 h-3 ml-1 hidden sm:inline" aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" class="w-56">
+            <DropdownMenuItem @click="copyAsMarkdown">
+              <Icon name="lucide:file-text" class="w-4 h-4 mr-2" />
+              Copy as Markdown
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="copyAsPlainText">
+              <Icon name="lucide:type" class="w-4 h-4 mr-2" />
+              Copy as Plain Text
+            </DropdownMenuItem>
+            <DropdownMenuItem @click="copyAsHtml">
+              <Icon name="lucide:code" class="w-4 h-4 mr-2" />
+              Copy as HTML
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         
         <!-- Share button -->
         <Button 
@@ -320,8 +335,8 @@ const props = withDefaults(defineProps<MarkdownNavbarProps>(), {
 // Get TOC state
 const showToc = useState('showToc', () => false)
 
-// Copy button feedback state
-const copied = ref(false)
+// Copy functionality
+const { copyContent, copied } = useCopyContent()
 
 /**
  * Detect if the user is on a Mac for keyboard shortcut display.
@@ -354,35 +369,18 @@ const toggleFullscreen = () => {
 }
 
 /**
- * Copy the markdown content to the clipboard.
- * Uses the Clipboard API if available, otherwise falls back to a textarea method.
+ * Copy content in different formats
  */
-const copyMarkdown = async () => {
-  try {
-    await navigator.clipboard.writeText(props.markdownContent || '')
-    // Show success feedback
-    copied.value = true
-    setTimeout(() => {
-      copied.value = false
-    }, 2000)
-  } catch (err) {
-    // Clipboard API failed, fallback to textarea method
-    try {
-      const textArea = document.createElement('textarea')
-      textArea.value = props.markdownContent || ''
-      document.body.appendChild(textArea)
-      textArea.select()
-      document.execCommand('copy')
-      document.body.removeChild(textArea)
-      // Show success feedback
-      copied.value = true
-      setTimeout(() => {
-        copied.value = false
-      }, 2000)
-    } catch (fallbackErr) {
-      // Silent failure - no console.error in production
-    }
-  }
+const copyAsMarkdown = async () => {
+  await copyContent(props.markdownContent || '', { format: 'markdown' })
+}
+
+const copyAsPlainText = async () => {
+  await copyContent(props.markdownContent || '', { format: 'plain' })
+}
+
+const copyAsHtml = async () => {
+  await copyContent(props.markdownContent || '', { format: 'html' })
 }
 
 /**

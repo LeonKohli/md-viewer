@@ -22,6 +22,7 @@ import markdownItHighlightjs from 'markdown-it-highlightjs'
 import { footnote } from '@mdit/plugin-footnote'
 import { katex } from '@mdit/plugin-katex'
 import markdownItPlantUML from 'markdown-it-plantuml'
+import markdownItPlainText from 'markdown-it-plain-text'
 
 // Import highlight.js with specific languages
 import hljs from 'highlight.js/lib/core'
@@ -141,7 +142,10 @@ md.use(markdownItPlantUML, {
   server: 'https://www.plantuml.com/plantuml'
 })
 
-// 10. Mermaid support - custom renderer for fence blocks with optimized loading
+// 10. Plain text extraction
+md.use(markdownItPlainText)
+
+// 11. Mermaid support - custom renderer for fence blocks with optimized loading
 const originalFence = md.renderer.rules.fence!
 md.renderer.rules.fence = function (tokens, idx, options, env, self) {
   const token = tokens[idx]
@@ -180,10 +184,17 @@ export function renderMarkdown(raw: string): string {
   return html
 }
 
+// Export function to get plain text
+export function getPlainText(raw: string): string {
+  md.render(raw) // This populates md.plainText
+  return (md as any).plainText || ''
+}
+
 export default defineNuxtPlugin(() => {
   return {
     provide: {
-      md: renderMarkdown
+      md: renderMarkdown,
+      mdPlainText: getPlainText
     }
   }
 })

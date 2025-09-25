@@ -31,6 +31,7 @@
         "markdown-it-ins": "^4.0.0",
         "markdown-it-mark": "^4.0.0",
         "markdown-it-multimd-table": "^4.2.3",
+        "markdown-it-plain-text": "^0.3.0",
         "markdown-it-plantuml": "^1.4.1",
         "markdown-it-sub": "^2.0.0",
         "markdown-it-sup": "^2.0.0",
@@ -1804,6 +1805,8 @@
     "markdown-it-mark": ["markdown-it-mark@4.0.0", "", {}, "sha512-YLhzaOsU9THO/cal0lUjfMjrqSMPjjyjChYM7oyj4DnyaXEzA8gnW6cVJeyCrCVeyesrY2PlEdUYJSPFYL4Nkg=="],
 
     "markdown-it-multimd-table": ["markdown-it-multimd-table@4.2.3", "", {}, "sha512-KepCr2OMJqm7IT6sOIbuqHGe+NERhgy66XMrc5lo6dHW7oaPzMDtYwR1EGwK16/blb6mCSg4jqityOe0o/H7HA=="],
+
+    "markdown-it-plain-text": ["markdown-it-plain-text@0.3.0", "", {}, "sha512-JT5x7oXZaTY6lwxsnxaIAT4hm5Q2Mi8dZoCaCNg3s7JXmDxY84D90OtV0US436UvN4zOUHoac4ExceTogydOLw=="],
 
     "markdown-it-plantuml": ["markdown-it-plantuml@1.4.1", "", {}, "sha512-13KgnZaGYTHBp4iUmGofzZSBz+Zj6cyqfR0SXUIc9wgWTto5Xhn7NjaXYxY0z7uBeTUMlc9LMQq5uP4OM5xCHg=="],
 
