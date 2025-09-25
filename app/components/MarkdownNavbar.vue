@@ -134,7 +134,7 @@
           @save-gist="$emit('saveGist')"
           @new-gist="$emit('newGist')"
           @browse-gists="$emit('openGists')"
-          @load-gist="(gist) => $emit('loadGist', gist)"
+          @load-gist="(gist: any) => $emit('loadGist', gist)"
         />
         
         <!-- Separator -->

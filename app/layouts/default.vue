@@ -36,6 +36,8 @@
 </template>
 
 <script setup lang="ts">
+import { SAMPLE_MARKDOWN } from '~/constants/showcase-content'
+
 // Global states for the markdown editor
 const markdownContent = useState('markdownContent', () => '')
 const isFullscreen = useState('isFullscreen', () => false)
@@ -89,6 +91,18 @@ const gistToLoad = useState<any>('gistToLoad', () => null)
 const handleLoadGist = (gist: any) => {
   // Set the gist in global state so the index page can handle it
   gistToLoad.value = gist
+}
+
+const handleClearContent = () => {
+  markdownContent.value = ''
+  currentGistFilename.value = ''
+  hasUnsavedChanges.value = false
+}
+
+const handleLoadSample = () => {
+  markdownContent.value = SAMPLE_MARKDOWN
+  currentGistFilename.value = ''
+  hasUnsavedChanges.value = false
 }
 
 // Add keyboard shortcuts
