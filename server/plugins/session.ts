@@ -1,19 +1,16 @@
 export default defineNitroPlugin(() => {
-  // Session validation hook - only validates on protected routes
+  // Session hooks for logging and debugging
   sessionHooks.hook('fetch', async (session, event) => {
-    // Skip validation for auth routes and public routes
-    const url = event.node.req.url || ''
-    if (url.startsWith('/api/auth/') || url === '/login' || url === '/') {
-      return
+    // Log session fetch for debugging
+    if (session.user) {
+      console.log(`Session fetched for user: ${session.user.login}`)
     }
-    
-    // Only validate session when accessing gist-related endpoints
-    if (url.startsWith('/api/gists/') && !session.secure?.accessToken) {
-      await clearUserSession(event)
-      throw createError({ 
-        statusCode: 401, 
-        statusMessage: 'GitHub authentication required to access gists' 
-      })
+  })
+
+  sessionHooks.hook('clear', async (session, event) => {
+    // Log when user logs out
+    if (session.user) {
+      console.log(`User logged out: ${session.user.login}`)
     }
   })
 })

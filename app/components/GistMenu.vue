@@ -429,7 +429,7 @@ const showToast = (message: string, type: 'info' | 'success' | 'error' = 'info')
 }
 
 const handleLogin = () => {
-  navigateTo('/api/auth/github', { external: true })
+  navigateTo('/auth/github', { external: true })
 }
 
 const handleSave = async () => {

@@ -27,12 +27,16 @@ export default defineOAuthGitHubEventHandler({
       loggedInAt: new Date()
     })
 
-    const session = await getUserSession(event)
     console.log('GitHub OAuth success - gist access granted for:', user.login)
-    return sendRedirect(event, '/?auth=success')
+
+    // Redirect to home page after successful login
+    return sendRedirect(event, '/')
   },
-  onError(event, error) {
+  async onError(event, error) {
     console.error('GitHub OAuth error:', error)
-    return sendRedirect(event, '/?error=github_oauth_failed')
-  }
+    // Clear any existing session on error
+    await clearUserSession(event)
+    // Redirect to login page with error
+    return sendRedirect(event, '/login?error=oauth_failed')
+  },
 })

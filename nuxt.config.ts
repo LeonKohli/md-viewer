@@ -53,5 +53,10 @@ export default defineNuxtConfig({
         clientSecret: process.env.GITHUB_CLIENT_SECRET,
       }
     }
+  },
+
+  // Use RouterOptions to handle auth redirects
+  routeRules: {
+    '/login': { index: false }
   }
 })
