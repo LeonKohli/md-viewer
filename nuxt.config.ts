@@ -4,7 +4,7 @@ import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
   compatibilityDate: '2025-09-25',
   devtools: { enabled: true },
-  modules: ['@nuxt/icon', 'shadcn-nuxt', '@vueuse/nuxt', '@nuxtjs/color-mode', '@nuxtjs/seo', '@nuxt/scripts', '@vite-pwa/nuxt', 'nuxt-auth-utils'],
+  modules: ['@nuxt/icon', 'shadcn-nuxt', '@vueuse/nuxt', '@nuxtjs/color-mode', '@nuxtjs/seo', '@nuxt/scripts', 'nuxt-auth-utils'],
   // Basic SEO site configuration
   site: {
     name: 'Markdown Editor',
@@ -42,113 +42,11 @@ export default defineNuxtConfig({
       }
     }
   },
-  // PWA Configuration
-  pwa: {
-    registerType: 'autoUpdate', // Automatically update service worker
-    manifest: {
-      name: 'Markdown Editor',
-      short_name: 'MD Editor',
-      description: 'A powerful online markdown editor with live preview, syntax highlighting, table of contents, and export capabilities',
-      theme_color: 'hsl(48 33.3333% 97.0588%)',
-      background_color: 'hsl(48 33.3333% 97.0588%)',
-      display: 'standalone',
-      scope: '/',
-      start_url: '/',
-      prefer_related_applications: false,
-      icons: [
-        {
-          src: 'pwa-192x192.png',
-          sizes: '192x192',
-          type: 'image/png',
-          purpose: 'any'
-        },
-        {
-          src: 'pwa-192x192.png',
-          sizes: '192x192',
-          type: 'image/png',
-          purpose: 'maskable'
-        },
-        {
-          src: 'pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'any'
-        },
-        {
-          src: 'pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png',
-          purpose: 'maskable'
-        }
-      ],
-      screenshots: [
-        {
-          src: 'pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png',
-          form_factor: 'wide'
-        },
-        {
-          src: 'pwa-512x512.png',
-          sizes: '512x512',
-          type: 'image/png',
-          form_factor: 'narrow'
-        }
-      ],
-      display_override: ['window-controls-overlay', 'standalone', 'minimal-ui', 'browser']
-    },
-    workbox: {
-      navigateFallback: '/', // Fallback page for offline navigation
-      globPatterns: ['**/*.{js,css,html,png,svg,ico,woff,woff2}'], // Files to cache
-      maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3MB limit to handle large script files
-      cleanupOutdatedCaches: true, // Remove old caches automatically
-      clientsClaim: true, // Take control of pages immediately on activation
-      runtimeCaching: [
-        {
-          urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'google-fonts-cache',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-            },
-            cacheableResponse: {
-              statuses: [0, 200]
-            }
-          }
-        },
-        {
-          urlPattern: /^https:\/\/fonts\.gstatic\.com\/.*/i,
-          handler: 'CacheFirst',
-          options: {
-            cacheName: 'gstatic-fonts-cache',
-            expiration: {
-              maxEntries: 10,
-              maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
-            },
-            cacheableResponse: {
-              statuses: [0, 200]
-            }
-          }
-        }
-      ]
-    },
-    client: {
-      installPrompt: false, // Use default browser install prompt
-      periodicSyncForUpdates: 3600 // Check for updates every hour
-    },
-    devOptions: {
-      enabled: true, // Enable in development for testing
-      suppressWarnings: true,
-      navigateFallbackAllowlist: [/^\/$/],
-      type: 'module'
-    }
-  },
-  // Prerender the homepage for offline support
+  // Prerender the homepage
   nitro: {
     prerender: {
       routes: ['/'],
+      crawlLinks: false, // Don't crawl links to avoid caching dynamic routes
     },
   },
   // GitHub OAuth configuration

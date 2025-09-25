@@ -29,10 +29,18 @@ export default defineOAuthGitHubEventHandler({
 
     const session = await getUserSession(event)
     console.log('GitHub OAuth success - gist access granted for:', user.login)
-    return sendRedirect(event, '/')
+    // Add cache-control headers to prevent service worker caching auth redirects
+    setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
+    setHeader(event, 'Pragma', 'no-cache')
+    setHeader(event, 'Expires', '0')
+    return sendRedirect(event, '/?auth=success')
   },
   onError(event, error) {
     console.error('GitHub OAuth error:', error)
+    // Add cache-control headers to prevent service worker caching auth errors
+    setHeader(event, 'Cache-Control', 'no-cache, no-store, must-revalidate')
+    setHeader(event, 'Pragma', 'no-cache')
+    setHeader(event, 'Expires', '0')
     return sendRedirect(event, '/?error=github_oauth_failed')
   }
 })
