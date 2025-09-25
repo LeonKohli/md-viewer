@@ -2,9 +2,9 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
+  compatibilityDate: '2025-09-25',
   devtools: { enabled: true },
-  modules: ['@nuxt/icon', 'shadcn-nuxt', '@vueuse/nuxt', '@nuxtjs/color-mode', '@nuxtjs/seo', '@nuxt/scripts', '@vite-pwa/nuxt', 'nuxt-security', 'nuxt-auth-utils'],
+  modules: ['@nuxt/icon', 'shadcn-nuxt', '@vueuse/nuxt', '@nuxtjs/color-mode', '@nuxtjs/seo', '@nuxt/scripts', '@vite-pwa/nuxt', 'nuxt-auth-utils'],
   // Basic SEO site configuration
   site: {
     name: 'Markdown Editor',
@@ -150,16 +150,6 @@ export default defineNuxtConfig({
     prerender: {
       routes: ['/'],
     },
-  },
-  // Security configuration
-  security: {
-    headers: {
-      contentSecurityPolicy: {
-        'img-src': ["'self'", "data:", "https:", "http:"],
-        'script-src': ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://um.web.leonkohli.de", "https://static.cloudflareinsights.com"],
-        'connect-src': ["'self'", "https://um.web.leonkohli.de", "https://static.cloudflareinsights.com"]
-      }
-    }
   },
   // GitHub OAuth configuration
   runtimeConfig: {
