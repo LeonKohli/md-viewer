@@ -329,7 +329,7 @@ const emit = defineEmits<{
 }>()
 
 // Auth state
-const { loggedIn, user, fetch: fetchUserSession } = useUserSession()
+const { loggedIn, user } = useUserSession()
 
 // Gist state
 const { 

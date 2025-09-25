@@ -869,16 +869,8 @@ watch(() => route.hash, async (newHash, oldHash) => {
 
 
 // Set up keyboard listeners using VueUse for automatic cleanup
-onMounted(async () => {
+onMounted(() => {
   useEventListener(window, 'keydown', handleKeydown)
-
-  // Fetch user session after OAuth redirect
-  // Check if we're coming back from GitHub OAuth
-  const { fetch } = useUserSession()
-
-  // Always fetch on mount to ensure session is up to date
-  // This handles OAuth redirects and page refreshes
-  await fetch()
 })
 
 // Clean up on unmount is handled automatically by useEventListener
