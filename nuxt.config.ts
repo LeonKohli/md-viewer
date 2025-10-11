@@ -11,6 +11,10 @@ export default defineNuxtConfig({
     description: 'A powerful online markdown editor with live preview, syntax highlighting, table of contents, and export capabilities',
     defaultLocale: 'en',
   },
+  // OG Image configuration to avoid prerendering errors
+  ogImage: {
+    enabled: false, // Disable automatic OG image generation during build
+  },
   css: [
     '~/assets/css/main.css',
     'katex/dist/katex.min.css',
