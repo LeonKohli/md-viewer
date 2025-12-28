@@ -1,5 +1,4 @@
-import type { TocItem } from './useTableOfContents'
-import type { ExportOptions } from '~/types'
+// TocItem, ExportOptions are auto-imported from shared/types/
 
 export function useHtmlExport() {
   

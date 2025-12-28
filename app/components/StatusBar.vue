@@ -60,9 +60,10 @@
 </template>
 
 <script setup lang="ts">
-import type { MarkdownStats, CursorPosition } from '~/types'
+// Explicit import required for defineProps (Vue SFC compiler limitation)
+import type { MarkdownStats, CursorPosition } from '#shared/types/editor'
 
-interface Props {
+type Props = {
   stats: MarkdownStats
   cursorPosition: CursorPosition
   syncEnabled: boolean

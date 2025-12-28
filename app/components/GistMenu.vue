@@ -281,10 +281,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Gist, GistFile } from '~/types/gist'
+// Gist, GistFile are auto-imported from shared/types/
 
 // Extended Gist type for loading with temporary content
-interface GistWithTempData extends Readonly<Gist> {
+type GistWithTempData = Readonly<Gist> & {
   tempContent?: string
   tempFilename?: string
 }

@@ -1,8 +1,10 @@
-import type { MarkdownStats, CursorPosition } from '~/types'
 import { DEFAULT_CONFIG } from '~/constants'
 import { watchDebounced } from '@vueuse/core'
 
-interface TaskItem {
+// MarkdownStats, CursorPosition are auto-imported from shared/types/editor.ts
+
+// Internal type for task items
+type TaskItem = {
   line: number
   checked: boolean
 }

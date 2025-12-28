@@ -1,11 +1,6 @@
 import type { Ref } from 'vue'
 
-export interface TocItem {
-  id: string
-  text: string
-  level: number
-  children: TocItem[]
-}
+// TocItem is auto-imported from shared/types/editor.ts
 
 export function useTableOfContents(content: Ref<string>, renderedHtml?: Ref<string>) {
   const activeHeadingId = ref<string>('')

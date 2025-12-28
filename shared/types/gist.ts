@@ -1,12 +1,11 @@
-// Import from Octokit directly for proper types
+// Gist-related types - auto-imported via shared/types/
 import type { Octokit } from 'octokit'
 
 // Extract proper types from Octokit responses
 type OctokitGistResponse = Awaited<ReturnType<Octokit['rest']['gists']['list']>>
 export type Gist = OctokitGistResponse['data'][0]
 
-// Extend GistFile to ensure content is always present
-export interface GistFile {
+export type GistFile = {
   filename?: string
   type?: string
   language?: string
@@ -17,30 +16,27 @@ export interface GistFile {
   encoding?: string
 }
 
-// Request types - these are custom for our app
-export interface CreateGistRequest {
+export type CreateGistRequest = {
   description?: string
   public?: boolean
   files: Record<string, { content: string }>
 }
 
-export interface UpdateGistRequest {
+export type UpdateGistRequest = {
   description?: string
   files?: Record<string, { content?: string | null; filename?: string }>
 }
 
-// UI-specific types
-export interface GistOperationResult {
+export type GistOperationResult = {
   success: boolean
   gist?: Gist
   error?: string
 }
 
-// Sort options for gist list
 export type GistSortOption = 'updated' | 'created' | 'name'
 export type GistSortDirection = 'asc' | 'desc'
 
-export interface GistListOptions {
+export type GistListOptions = {
   page?: number
   perPage?: number
   sort?: GistSortOption

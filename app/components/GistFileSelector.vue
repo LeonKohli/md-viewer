@@ -50,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Gist } from '~/types/gist'
+// Gist is auto-imported from shared/types/
 import {
   Dialog,
   DialogContent,

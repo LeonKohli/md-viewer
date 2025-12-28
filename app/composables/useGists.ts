@@ -1,7 +1,7 @@
-import type { Gist, GistFile, CreateGistRequest, UpdateGistRequest, GistOperationResult, GistListOptions } from '~/types/gist'
+// Gist types are auto-imported from shared/types/gist.ts
 
-// Type guard for fetch errors
-interface FetchError {
+// Internal type guard for fetch errors
+type FetchError = {
   data?: {
     statusMessage?: string
   }

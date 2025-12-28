@@ -416,8 +416,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TocItem } from '~/composables/useTableOfContents'
-import type { Gist, GistFile } from '~/types/gist'
+// TocItem, Gist, GistFile are auto-imported from shared/types/
 import ShareDialog from '~/components/ShareDialog.vue'
 import GistManager from '~/components/GistManager.vue'
 import SaveGistDialog from '~/components/SaveGistDialog.vue'
@@ -479,14 +478,15 @@ const {
   isMobile: isMobileFromPanel
 } = useResizablePanels()
 
-const { 
-  syncEnabled, 
+const {
+  syncEnabled,
   toggleSync,
   scrollSyncIcon,
   scrollSyncTooltip,
   setEditorElement,
   setPreviewElement,
-  scrollToElement
+  scrollToElement,
+  refreshScrollMap
 } = useScrollSync()
 
 const {
@@ -708,16 +708,19 @@ let previousMermaidContent = ''
 
 // Update active heading when content changes
 watch(renderedHtml, () => {
+  // Invalidate scroll map when content changes - will rebuild on next scroll
+  refreshScrollMap()
+
   // Update active heading after content renders
   nextTick(() => {
     updateActiveHeadingDebounced()
-    
+
     // Only render Mermaid diagrams if mermaid content has changed
     if ($renderMermaid) {
       // Extract mermaid content from the rendered HTML
       const mermaidMatches = renderedHtml.value.match(/data-mermaid-src="([^"]+)"/g)
       const currentMermaidContent = mermaidMatches ? mermaidMatches.join('') : ''
-      
+
       // Only re-render if mermaid content actually changed
       if (currentMermaidContent !== previousMermaidContent) {
         $renderMermaid()

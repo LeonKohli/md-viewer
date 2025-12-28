@@ -76,9 +76,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Gist } from '~/types/gist'
+// Explicit import required for defineProps (Vue SFC compiler limitation)
+import type { Gist } from '#shared/types/gist'
 
-interface Props {
+type Props = {
   currentGist: Gist | null
   lastSaved?: Date | null
   isSyncing?: boolean

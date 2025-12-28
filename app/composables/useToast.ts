@@ -1,22 +1,4 @@
-// Toast types
-export type ToastType = 'success' | 'error' | 'info' | 'warning'
-
-export interface Toast {
-  id: string
-  message: string
-  type: ToastType
-  duration?: number
-  action?: {
-    label: string
-    handler: () => void
-  }
-}
-
-export interface ToastOptions {
-  type?: ToastType
-  duration?: number
-  action?: Toast['action']
-}
+// Toast, ToastType, ToastOptions are auto-imported from shared/types/ui.ts
 
 // Default toast duration in milliseconds
 const DEFAULT_DURATION = 3000

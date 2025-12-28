@@ -308,7 +308,8 @@
 </template>
 
 <script setup lang="ts">
-import type { MarkdownNavbarProps, MarkdownNavbarEmits } from '~/types'
+// Explicit import required for defineProps/defineEmits (Vue SFC compiler limitation)
+import type { MarkdownNavbarProps, MarkdownNavbarEmits } from '#shared/types/ui'
 import { EXPORT_CONFIG, MARKDOWN_EXAMPLES } from '~/constants'
 import { SAMPLE_MARKDOWN } from '~/constants/showcase-content'
 import {

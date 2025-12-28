@@ -1,24 +1,12 @@
 import QRCode from 'qrcode'
-import { 
-  compressContent, 
-  decompressContent, 
+import {
+  compressContent,
+  decompressContent,
   canShareViaURL,
   COMPRESSION_THRESHOLDS
 } from '~/utils/compression'
 
-export interface ShareOptions {
-  title?: string
-  readOnly?: boolean
-  expiresAt?: Date
-}
-
-export interface SharedDocument {
-  content: string
-  title?: string
-  createdAt: string
-  readOnly: boolean
-  version: number
-}
+// ShareOptions, SharedDocument are auto-imported from shared/types/editor.ts
 
 export function useContentSharing() {
   const route = useRoute()

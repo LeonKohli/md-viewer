@@ -25,10 +25,11 @@
 </template>
 
 <script setup lang="ts">
-import type { TocItem as TocItemType } from '~/composables/useTableOfContents'
+// Explicit import required for defineProps (Vue SFC compiler limitation)
+import type { TocItem } from '#shared/types/editor'
 
-interface Props {
-  item: TocItemType
+type Props = {
+  item: TocItem
   activeId: string
 }
 

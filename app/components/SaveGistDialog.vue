@@ -216,7 +216,7 @@
 </template>
 
 <script setup lang="ts">
-import type { Gist, GistFile } from '~/types/gist'
+// Gist, GistFile are auto-imported from shared/types/
 import { useGists } from '~/composables/useGists'
 import { Info } from 'lucide-vue-next'
 import {

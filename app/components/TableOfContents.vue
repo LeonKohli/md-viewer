@@ -21,7 +21,7 @@
       </div>
       
       <nav v-else>
-        <TocItem
+        <TocItemVue
           v-for="heading in headings"
           :key="heading.id"
           :item="heading"
@@ -34,12 +34,13 @@
 </template>
 
 <script setup lang="ts">
+// Explicit import required for defineProps (Vue SFC compiler limitation)
+import type { TocItem } from '#shared/types/editor'
 import { Button } from '~/components/ui/button'
-import TocItem from '~/components/TocItem.vue'
-import type { TocItem as TocItemType } from '~/composables/useTableOfContents'
+import TocItemVue from '~/components/TocItem.vue'
 
-interface Props {
-  headings: TocItemType[]
+type Props = {
+  headings: TocItem[]
   activeHeadingId: string
 }
 

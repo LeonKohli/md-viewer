@@ -1,8 +1,9 @@
 import { useClipboard } from '@vueuse/core'
 
-export type CopyFormat = 'markdown' | 'plain' | 'html'
+// CopyFormat is auto-imported from shared/types/editor.ts
 
-interface CopyOptions {
+// Internal type for copy options
+type CopyOptions = {
   format: CopyFormat
   showToast?: boolean
 }

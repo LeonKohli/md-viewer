@@ -1,6 +1,6 @@
 import { useDraggable, useWindowSize } from '@vueuse/core'
 
-export type SplitMode = 'horizontal' | 'vertical'
+// SplitMode is auto-imported from shared/types/editor.ts
 
 export function useResizablePanels() {
   // Split mode

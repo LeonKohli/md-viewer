@@ -40,15 +40,7 @@ const THRESHOLDS = {
   TYPING_SPEED: 2000,      // Ms between keystrokes to detect typing speed
 } as const
 
-export interface SaveMetadata {
-  timestamp: number
-  characterCount: number
-  hash?: string
-  wordCount?: number
-  saveCount?: number
-}
-
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'error'
+// SaveMetadata, SaveStatus are auto-imported from shared/types/editor.ts
 
 export const useAutoSave = () => {
   // Get the global markdown content state

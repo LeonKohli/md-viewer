@@ -125,9 +125,10 @@
 </template>
 
 <script setup lang="ts">
-import type { SaveStatus } from '~/composables/useAutoSave'
+// Explicit import required for defineProps (Vue SFC compiler limitation)
+import type { SaveStatus } from '#shared/types/editor'
 
-interface Props {
+type Props = {
   saveStatus: SaveStatus
   saveError: string | null
   lastSaveTimeAgo: string | null
