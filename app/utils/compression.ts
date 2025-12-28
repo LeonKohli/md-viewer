@@ -1,7 +1,7 @@
 import pako from 'pako'
 
 // Check for native Compression Streams API support
-export const hasNativeCompression = (() => {
+export const hasNativeCompression: boolean = (() => {
   if (typeof window === 'undefined') return false
   try {
     new CompressionStream('gzip')
@@ -12,10 +12,12 @@ export const hasNativeCompression = (() => {
   }
 })()
 
-// Performance thresholds
+// Performance thresholds - using const object pattern per Nuxt 4 best practices
 export const COMPRESSION_THRESHOLDS = {
   MAX_URL_LENGTH: 32000, // Safe for modern browsers
 } as const
+
+type CompressionThresholds = typeof COMPRESSION_THRESHOLDS
 
 // Convert string to Uint8Array
 function stringToUint8Array(str: string): Uint8Array {
@@ -58,7 +60,12 @@ export function fromBase64URL(str: string): Uint8Array {
 async function compressNative(text: string): Promise<Uint8Array> {
   const cs = new CompressionStream('gzip')
   const byteData = stringToUint8Array(text)
-  const stream = new Response(byteData).body!
+  // Cast to ArrayBuffer - TextEncoder always produces ArrayBuffer, not SharedArrayBuffer
+  const buffer = byteData.buffer.slice(
+    byteData.byteOffset,
+    byteData.byteOffset + byteData.byteLength
+  ) as ArrayBuffer
+  const stream = new Response(buffer).body!
   const compressedStream = stream.pipeThrough(cs)
   const compressedBlob = await new Response(compressedStream).blob()
   return new Uint8Array(await compressedBlob.arrayBuffer())
@@ -67,7 +74,12 @@ async function compressNative(text: string): Promise<Uint8Array> {
 // Native decompression using Decompression Streams API
 async function decompressNative(data: Uint8Array): Promise<string> {
   const ds = new DecompressionStream('gzip')
-  const stream = new Response(data).body!
+  // Cast to ArrayBuffer - our Uint8Array is always backed by ArrayBuffer
+  const buffer = data.buffer.slice(
+    data.byteOffset,
+    data.byteOffset + data.byteLength
+  ) as ArrayBuffer
+  const stream = new Response(buffer).body!
   const decompressedStream = stream.pipeThrough(ds)
   const decompressedBlob = await new Response(decompressedStream).blob()
   return await decompressedBlob.text()
