@@ -87,6 +87,101 @@ This is a Nuxt 3-based Markdown editor with live preview, built using Vue 3 Comp
 11. Use Puppeteer for iterating on website design and testing
 12. When unsure about libraries or need more knowledge, use Context7 MCP server
 
+### Nuxt 4 TypeScript Best Practices
+
+#### Typing Refs and State
+
+```typescript
+// ✗ BAD - Returns Ref<any>, no type checking
+const count = ref()
+const data = ref()
+
+// ✓ GOOD - Explicit types
+const count = ref<number>(0)
+const count = ref(0)  // Type inferred from initial value
+const data = ref<User | null>(null)
+
+// For SSR-safe shared state, use useState instead of ref
+const user = useState<User>('user', () => defaultUser)
+```
+
+#### Composable Patterns
+
+```typescript
+// File: composables/useFeature.ts
+export function useFeature() {
+  // Use shallowRef for complex objects that don't need deep reactivity
+  const complexData = shallowRef<ComplexType>({ ... })
+
+  // Always type function parameters and returns
+  const processData = (input: string): ProcessedData => { ... }
+
+  // Return typed refs, not unwrapped values
+  return {
+    complexData: readonly(complexData),
+    processData
+  }
+}
+```
+
+#### Type Definitions
+
+```typescript
+// ✓ GOOD - Prefer types over interfaces
+type User = {
+  id: number
+  name: string
+  role: 'admin' | 'user'
+}
+
+// ✓ GOOD - Use const objects instead of enums
+const Status = {
+  PENDING: 'pending',
+  ACTIVE: 'active',
+  DONE: 'done'
+} as const
+type Status = typeof Status[keyof typeof Status]
+
+// ✗ BAD - Avoid enums
+enum Status { PENDING, ACTIVE, DONE }
+```
+
+#### Component Props and Emits
+
+```typescript
+// Typed props with defaults
+const props = withDefaults(defineProps<{
+  users: User[]
+  loading?: boolean
+}>(), {
+  loading: false
+})
+
+// Typed emits
+const emit = defineEmits<{
+  'user-select': [user: User]
+  'update:modelValue': [value: string]
+}>()
+```
+
+#### Template Refs
+
+```typescript
+// ✓ GOOD - Use useTemplateRef (Vue 3.5+) or typed ref
+const inputRef = useTemplateRef<HTMLInputElement>('input')
+
+// For component refs
+import type MyComponent from './MyComponent.vue'
+const compRef = ref<InstanceType<typeof MyComponent>>()
+```
+
+#### Key Conventions
+
+- **Composable files**: camelCase starting with `use` (e.g., `useScrollSync.ts`)
+- **Component files**: PascalCase (e.g., `StatusBar.vue`)
+- **Directory names**: lowercase with dashes (e.g., `components/ui/`)
+- **Type files**: PascalCase or camelCase with `.d.ts` extension
+
 ### Important Reminders
 
 - Always make sure to run `bun run typecheck` to make sure there are no errors
