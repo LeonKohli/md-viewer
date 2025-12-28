@@ -68,6 +68,43 @@ const md = new MarkdownIt({
   langPrefix: 'hljs language-',
 } as MarkdownItOptions)
 
+// Source line injection plugin for scroll sync
+// Injects data-source-line attributes into block-level elements
+function injectSourceLines(md: MarkdownIt) {
+  // Block-level token types that should receive line numbers
+  const blockTypes = [
+    'paragraph_open',
+    'heading_open',
+    'blockquote_open',
+    'bullet_list_open',
+    'ordered_list_open',
+    'list_item_open',
+    'fence',
+    'code_block',
+    'table_open',
+    'hr',
+    'html_block'
+  ]
+
+  // Wrap the original renderer to inject line numbers
+  const originalRender = md.renderer.render.bind(md.renderer)
+
+  md.renderer.render = function(tokens, options, env) {
+    // Add data-source-line attribute to block tokens before rendering
+    for (const token of tokens) {
+      if (blockTypes.includes(token.type) && token.map && token.map[0] !== undefined) {
+        // token.map[0] is 0-indexed, add 1 for human-readable line numbers
+        const lineNumber = token.map[0] + 1
+        token.attrSet('data-source-line', String(lineNumber))
+      }
+    }
+    return originalRender(tokens, options, env)
+  }
+}
+
+// Apply source line injection
+md.use(injectSourceLines)
+
 // Custom slugify function to create cleaner IDs
 const slugify = (s: string) => {
   return s
