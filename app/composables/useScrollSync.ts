@@ -329,7 +329,9 @@ export function useScrollSync() {
       useEventListener(previewElement.value, 'mousedown', handleMouseDown)
     }
 
-    useEventListener(document, 'mouseup', handleMouseUp)
+    if (import.meta.client) {
+      useEventListener(document, 'mouseup', handleMouseUp)
+    }
   }
 
   // Watch for element changes

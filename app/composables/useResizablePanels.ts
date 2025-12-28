@@ -74,8 +74,8 @@ export function useResizablePanels() {
   
   // Watch for dragging state to update cursor - only on desktop
   watch([isDragging, isMobile, splitMode], ([dragging, mobile, mode]) => {
-    if (mobile) return
-    
+    if (!import.meta.client || mobile) return
+
     if (dragging) {
       document.body.style.cursor = mode === 'horizontal' ? 'col-resize' : 'row-resize'
       document.body.style.userSelect = 'none'
@@ -112,6 +112,7 @@ export function useResizablePanels() {
   
   // Clean up on unmount
   onUnmounted(() => {
+    if (!import.meta.client) return
     document.body.style.cursor = ''
     document.body.style.userSelect = ''
   })

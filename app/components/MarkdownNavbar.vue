@@ -344,8 +344,8 @@ const { copyContent, copied } = useCopyContent()
  * This avoids the need for a composable and works cross-browser.
  */
 const isMac = computed(() => {
-  if (typeof window !== 'undefined' && window.navigator) {
-    return /Mac/.test(window.navigator.platform)
+  if (import.meta.client) {
+    return /Mac/.test(navigator.platform)
   }
   return false
 })

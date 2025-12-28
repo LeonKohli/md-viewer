@@ -357,15 +357,15 @@ const toast = useToast()
 
 // Computed
 const isMobile = computed(() => {
-  if (typeof window !== 'undefined') {
+  if (import.meta.client) {
     return window.innerWidth < 768
   }
   return false
 })
 
 const isMac = computed(() => {
-  if (typeof window !== 'undefined' && window.navigator) {
-    return /Mac/.test(window.navigator.platform)
+  if (import.meta.client) {
+    return /Mac/.test(navigator.platform)
   }
   return false
 })
