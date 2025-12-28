@@ -29,27 +29,23 @@
     <main class="flex-1 overflow-hidden" role="main">
       <slot />
     </main>
-    
-    <!-- Toast notifications -->
-    <ToastContainer />
   </div>
 </template>
 
 <script setup lang="ts">
-import { SAMPLE_MARKDOWN } from '~/constants/showcase-content'
 
-// Global states for the markdown editor
-const markdownContent = useState('markdownContent', () => '')
-const isFullscreen = useState('isFullscreen', () => false)
-const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
-const showToc = useState('showToc', () => false)
-const renderedHtml = useState<string>('renderedHtml', () => '')
-const tocHeadings = useState<any[]>('tocHeadings', () => [])
-const showShareDialog = useState('showShareDialog', () => false)
-const showGistManager = useState('showGistManager', () => false)
-const showSaveGistDialog = useState('showSaveGistDialog', () => false)
-const currentGistFilename = useState('currentGistFilename', () => '')
-const hasUnsavedChanges = useState('hasUnsavedChanges', () => false)
+// Shared state via composables (Nuxt 4 pattern)
+const markdownContent = useMarkdownContent()
+const isFullscreen = useIsFullscreen()
+const resetPanelsEvent = useResetPanelsEvent()
+const showToc = useShowToc()
+const renderedHtml = useRenderedHtml()
+const tocHeadings = useTocHeadings()
+const showShareDialog = useShowShareDialog()
+const showGistManager = useShowGistManager()
+const showSaveGistDialog = useShowSaveGistDialog()
+const currentGistFilename = useCurrentGistFilename()
+const hasUnsavedChanges = useHasUnsavedChanges()
 
 const handleResetPanels = () => {
   resetPanelsEvent.value = Date.now()
@@ -79,14 +75,12 @@ const handleSaveGist = () => {
 }
 
 const handleNewGist = () => {
-  // Create a global state for forcing new gist
-  const forceNewGist = useState('forceNewGist', () => false)
+  const forceNewGist = useForceNewGist()
   forceNewGist.value = true
   showSaveGistDialog.value = true
 }
 
-// Create a global state for gist loading events
-const gistToLoad = useState<any>('gistToLoad', () => null)
+const gistToLoad = useGistToLoad()
 
 const handleLoadGist = (gist: any) => {
   // Set the gist in global state so the index page can handle it
@@ -94,13 +88,13 @@ const handleLoadGist = (gist: any) => {
 }
 
 const handleClearContent = () => {
-  markdownContent.value = ''
+  // Content already cleared via v-model from navbar emit
   currentGistFilename.value = ''
   hasUnsavedChanges.value = false
 }
 
 const handleLoadSample = () => {
-  markdownContent.value = SAMPLE_MARKDOWN
+  // Content already set via v-model from navbar emit
   currentGistFilename.value = ''
   hasUnsavedChanges.value = false
 }

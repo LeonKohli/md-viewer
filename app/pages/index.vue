@@ -222,7 +222,6 @@
             :readonly="isViewingSharedDocument"
             spellcheck="false"
             @input="onInputChange"
-            @paste="handlePaste"
           />
         </div>
 
@@ -421,6 +420,7 @@ import ShareDialog from '~/components/ShareDialog.vue'
 import GistManager from '~/components/GistManager.vue'
 import SaveGistDialog from '~/components/SaveGistDialog.vue'
 import GistFileSelector from '~/components/GistFileSelector.vue'
+import { EDITOR_TIMING } from '~/constants'
 
 // SEO Meta
 useSeoMeta({
@@ -536,12 +536,12 @@ const clearEditor = () => {
     clearedContent.value = markdownInput.value
     showClearUndo.value = true
     
-    // Auto-hide undo after 10 seconds
+    // Auto-hide undo after timeout
     if (clearUndoTimeout) clearTimeout(clearUndoTimeout)
     clearUndoTimeout = setTimeout(() => {
       showClearUndo.value = false
       clearedContent.value = ''
-    }, 10000)
+    }, EDITOR_TIMING.UNDO_DISPLAY_MS)
   }
   
   markdownInput.value = ''
@@ -550,7 +550,7 @@ const clearEditor = () => {
     if (!markdownInput.value && !showClearUndo.value) {
       clearSavedContent()
     }
-  }, 15000) // 15 seconds - longer than undo timeout
+  }, EDITOR_TIMING.CLEAR_STORAGE_DELAY_MS)
   
   // Clear gist filename
   currentGistFilename.value = ''
@@ -570,7 +570,7 @@ const updateActiveHeadingDebounced = useDebounceFn(() => {
   if (previewContainerRef.value) {
     updateActiveHeading(previewContainerRef.value)
   }
-}, 100)
+}, EDITOR_TIMING.DEBOUNCE_HEADING_MS)
 
 // Set up scroll listener when preview element is ready
 let scrollListener: (() => void) | null = null
@@ -609,7 +609,13 @@ const stopWatchingScroll = watch(previewContainerRef, (newContainer, oldContaine
 onUnmounted(() => {
   // Stop the watcher
   stopWatchingScroll()
-  
+
+  // Clear any pending undo timeout
+  if (clearUndoTimeout) {
+    clearTimeout(clearUndoTimeout)
+    clearUndoTimeout = null
+  }
+
   // Remove scroll listener if it exists
   if (previewContainerRef.value && scrollListener) {
     previewContainerRef.value.removeEventListener('scroll', scrollListener)
@@ -621,29 +627,22 @@ onUnmounted(() => {
   }
 })
 
-// Global state
-const resetPanelsEvent = useState('resetPanelsEvent', () => 0)
-const showToc = useState('showToc', () => false)
-const globalRenderedHtml = useState<string>('renderedHtml', () => '')
-const globalTocHeadings = useState<TocItem[]>('tocHeadings', () => [])
-const showShareDialog = useState('showShareDialog', () => false)
-const showGistManager = useState('showGistManager', () => false)
-const showSaveGistDialog = useState('showSaveGistDialog', () => false)
+// Shared state via composables (Nuxt 4 pattern)
+const resetPanelsEvent = useResetPanelsEvent()
+const showToc = useShowToc()
+const showShareDialog = useShowShareDialog()
+const showGistManager = useShowGistManager()
+const showSaveGistDialog = useShowSaveGistDialog()
+const currentGistFilename = useCurrentGistFilename()
+const forceNewGist = useForceNewGist()
+const gistToLoadFromLayout = useGistToLoad()
+
+// Local state
 const showFileSelector = ref(false)
 const gistToLoad = ref<Gist | null>(null)
-const currentGistFilename = useState('currentGistFilename', () => '')
 const lastGistSaveTime = ref<Date | null>(null)
 const isSavingGist = ref(false)
-const forceNewGist = useState('forceNewGist', () => false)
-
-// Computed property for multi-file gist detection
-const isMultiFileGist = computed(() => {
-  if (!currentGist.value) return false
-  return Object.keys(currentGist.value.files).length > 1
-})
-
-// Watch for gist loading events from the layout
-const gistToLoadFromLayout = useState<any>('gistToLoad', () => null)
+const isFocusMode = ref(false)
 
 // Reset forceNewGist when dialog closes
 watch(showSaveGistDialog, (isOpen) => {
@@ -652,8 +651,6 @@ watch(showSaveGistDialog, (isOpen) => {
   }
 })
 
-// Local state
-const isFocusMode = ref(false)
 const activeTab = ref<'editor' | 'preview'>('editor')
 const documentTitle = ref('')
 const isViewingSharedDocument = ref(false)
@@ -728,23 +725,9 @@ watch(renderedHtml, () => {
       }
     }
   })
-  // Update global rendered HTML
-  globalRenderedHtml.value = renderedHtml.value
 })
 
-// Update global TOC headings when they change
-watch(tocHeadings, () => {
-  globalTocHeadings.value = tocHeadings.value
-}, { deep: true })
-
-
-// Handle paste event for immediate save
-const handlePaste = () => {
-  // Let Vue update the model first
-  nextTick(() => {
-    // The auto-save composable will detect the large change and save immediately
-  })
-}
+// TOC headings are now synced to global state inside useTableOfContents
 
 // Quick save to current gist
 const handleQuickSaveGist = async () => {
@@ -818,7 +801,7 @@ const handleKeydown = (e: KeyboardEvent) => {
       if (hasUnsavedChanges.value) {
         saveNow()
       }
-    }, 50)
+    }, EDITOR_TIMING.UNDO_REDO_SAVE_DELAY_MS)
   }
 }
 

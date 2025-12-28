@@ -11,13 +11,14 @@ type TaskItem = {
 
 export function useMarkdownEditor() {
   const { $md } = useNuxtApp()
-  
-  // Global state
-  const markdownContent = useState('markdownContent', () => '')
-  
+
+  // Shared state via composables
+  const markdownContent = useMarkdownContent()
+  const renderedHtml = useRenderedHtml()
+  const globalHasUnsavedChanges = useHasUnsavedChanges()
+
   // Local reactive state
   const markdownInput = ref('')
-  const renderedHtml = ref('')
   const textareaRef = ref<{ textareaElement?: HTMLTextAreaElement }>()
   const taskItems = ref<TaskItem[]>([])
   
@@ -43,11 +44,9 @@ export function useMarkdownEditor() {
   
   // Check for recoverable content on mount
   onMounted(() => {
-    // Skip recovery check if we're loading a shared document
     const route = useRoute()
     const isSharedDocument = route.hash.startsWith('#share/')
     
-    // Only check for recoverable content if not loading a shared document
     if (!markdownContent.value && !isSharedDocument) {
       const recoverable = getRecoverableContent()
       if (recoverable) {
@@ -73,6 +72,19 @@ export function useMarkdownEditor() {
     recoverableContent.value = null
     clearSavedContent()
   }
+  
+  // Auto-dismiss recovery prompt when user starts typing/pasting
+  watch(markdownInput, (newValue, oldValue) => {
+    if (
+      showRecoveryPrompt.value &&
+      newValue &&
+      !oldValue &&
+      newValue !== recoverableContent.value?.content
+    ) {
+      showRecoveryPrompt.value = false
+      recoverableContent.value = null
+    }
+  })
   
   // Editor preferences
   const wordWrap = ref(true)
@@ -220,7 +232,12 @@ export function useMarkdownEditor() {
       markdownInput.value = newValue
     }
   })
-  
+
+  // Sync hasUnsavedChanges computed to global state for layout/navbar access
+  watch(hasUnsavedChanges, (newValue) => {
+    globalHasUnsavedChanges.value = newValue
+  }, { immediate: true })
+
   // Setup textarea event listeners
   useEventListener(textareaElement, 'click', handleTextareaInteraction)
   useEventListener(textareaElement, 'keyup', handleTextareaInteraction)

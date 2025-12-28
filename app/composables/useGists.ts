@@ -11,20 +11,30 @@ const isFetchError = (error: unknown): error is FetchError => {
   return typeof error === 'object' && error !== null && 'data' in error
 }
 
+const getErrorMessage = (err: unknown, fallback: string): string => {
+  if (isFetchError(err)) {
+    return err.data?.statusMessage || fallback
+  }
+  if (err instanceof Error) {
+    return err.message
+  }
+  return fallback
+}
+
 export const useGists = () => {
-  // State - cast to handle readonly types from Octokit
-  const gists = useState<Gist[]>('gists', () => [])
-  const currentGist = useState<Gist | null>('currentGist', () => null)
-  const isLoading = useState('gistsLoading', () => false)
-  const error = useState<string | null>('gistsError', () => null)
-  
+  // State via composables (Nuxt 4 pattern)
+  const gists = useGistsList()
+  const currentGist = useCurrentGist()
+  const isLoading = useGistsLoading()
+  const error = useGistsError()
+
   // Track last synced content to detect changes relative to gist
-  const lastSyncedContent = useState<string>('lastSyncedGistContent', () => '')
-  const lastSyncedFilename = useState<string>('lastSyncedGistFilename', () => '')
-  
+  const lastSyncedContent = useLastSyncedGistContent()
+  const lastSyncedFilename = useLastSyncedGistFilename()
+
   // Pagination state
-  const currentPage = useState('gistsPage', () => 1)
-  const hasMore = useState('gistsHasMore', () => true)
+  const currentPage = useGistsPage()
+  const hasMore = useGistsHasMore()
   const perPage = 30
 
   /**
@@ -67,12 +77,7 @@ export const useGists = () => {
       
       return gists.value
     } catch (err) {
-      const errorMessage = isFetchError(err) 
-        ? err.data?.statusMessage || 'Failed to fetch gists'
-        : err instanceof Error 
-          ? err.message 
-          : 'Failed to fetch gists'
-      error.value = errorMessage
+      error.value = getErrorMessage(err, 'Failed to fetch gists')
       throw err
     } finally {
       isLoading.value = false
@@ -98,12 +103,7 @@ export const useGists = () => {
       
       return gist
     } catch (err) {
-      const errorMessage = isFetchError(err) 
-        ? err.data?.statusMessage || 'Failed to fetch gist'
-        : err instanceof Error 
-          ? err.message 
-          : 'Failed to fetch gist'
-      error.value = errorMessage
+      error.value = getErrorMessage(err, 'Failed to fetch gist')
       throw err
     } finally {
       isLoading.value = false
@@ -129,11 +129,7 @@ export const useGists = () => {
       
       return { success: true, gist }
     } catch (err) {
-      const errorMessage = isFetchError(err) 
-        ? err.data?.statusMessage || 'Failed to create gist'
-        : err instanceof Error 
-          ? err.message 
-          : 'Failed to create gist'
+      const errorMessage = getErrorMessage(err, 'Failed to create gist')
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
@@ -166,11 +162,7 @@ export const useGists = () => {
       
       return { success: true, gist }
     } catch (err) {
-      const errorMessage = isFetchError(err) 
-        ? err.data?.statusMessage || 'Failed to update gist'
-        : err instanceof Error 
-          ? err.message 
-          : 'Failed to update gist'
+      const errorMessage = getErrorMessage(err, 'Failed to update gist')
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {
@@ -199,11 +191,7 @@ export const useGists = () => {
       
       return { success: true }
     } catch (err) {
-      const errorMessage = isFetchError(err) 
-        ? err.data?.statusMessage || 'Failed to delete gist'
-        : err instanceof Error 
-          ? err.message 
-          : 'Failed to delete gist'
+      const errorMessage = getErrorMessage(err, 'Failed to delete gist')
       error.value = errorMessage
       return { success: false, error: errorMessage }
     } finally {

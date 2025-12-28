@@ -310,8 +310,7 @@
 <script setup lang="ts">
 // Explicit import required for defineProps/defineEmits (Vue SFC compiler limitation)
 import type { MarkdownNavbarProps, MarkdownNavbarEmits } from '#shared/types/ui'
-import { EXPORT_CONFIG, MARKDOWN_EXAMPLES } from '~/constants'
-import { SAMPLE_MARKDOWN } from '~/constants/showcase-content'
+import { EXPORT_CONFIG, MARKDOWN_EXAMPLES, SAMPLE_MARKDOWN } from '~/constants'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -333,8 +332,8 @@ const props = withDefaults(defineProps<MarkdownNavbarProps>(), {
   tocHeadings: () => []
 })
 
-// Get TOC state
-const showToc = useState('showToc', () => false)
+// Get TOC state via composable
+const showToc = useShowToc()
 
 // Copy functionality
 const { copyContent, copied } = useCopyContent()
@@ -453,6 +452,7 @@ const loadSample = () => {
  */
 const loadExample = (title: string, content: string) => {
   emit('update:markdownContent', content)
+  emit('loadSample') // Reuse event to trigger side effects (clear gist filename, etc.)
 }
 
 /**

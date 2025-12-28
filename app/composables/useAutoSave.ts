@@ -9,7 +9,6 @@
  * - Network-aware with retry logic
  */
 import { 
-  watchDebounced, 
   useTimeAgo, 
   useEventListener,
   useThrottleFn,
@@ -26,25 +25,31 @@ const STORAGE_META_KEY = 'markdown-editor-meta'
 
 // Smart save delays
 const SAVE_DELAYS = {
-  IMMEDIATE: 0,        // For critical actions (paste, undo)
-  TYPING_FAST: 500,    // When user is actively typing
-  TYPING_SLOW: 1500,   // When user is typing slowly
-  IDLE: 3000,          // When user stops typing
-  AFTER_BLUR: 100,     // When editor loses focus
+  IMMEDIATE: 0,
+  TYPING_FAST: 500,
+  TYPING_SLOW: 1500,
+  IDLE: 3000,
+  AFTER_BLUR: 100,
+  SAVED_STATUS_DISPLAY: 2000,
+  ERROR_STATUS_DISPLAY: 5000,
+  RETRY_DELAY: 1000,
+  THROTTLE_SAVE: 1000,
+  PERIODIC_SAVE: 30000,
 } as const
 
 // Thresholds for smart saving
 const THRESHOLDS = {
-  SIGNIFICANT_CHANGE: 20,  // Characters changed to trigger faster save
-  LARGE_PASTE: 100,        // Characters to detect paste operation
-  TYPING_SPEED: 2000,      // Ms between keystrokes to detect typing speed
+  SIGNIFICANT_CHANGE: 20,
+  LARGE_PASTE: 100,
+  TYPING_SPEED: 2000,
+  RECOVERY_WINDOW_DAYS: 7,
 } as const
 
 // SaveMetadata, SaveStatus are auto-imported from shared/types/editor.ts
 
 export const useAutoSave = () => {
-  // Get the global markdown content state
-  const markdownContent = useState('markdownContent', () => '')
+  // Get the global markdown content state via composable
+  const markdownContent = useMarkdownContent()
   
   // Save status and metadata
   const saveStatus = ref<SaveStatus>('idle')
@@ -173,12 +178,11 @@ export const useAutoSave = () => {
       
       saveStatus.value = 'saved'
       
-      // Keep saved status visible briefly
       const { start: clearSavedStatus } = useTimeoutFn(() => {
         if (saveStatus.value === 'saved') {
           saveStatus.value = 'idle'
         }
-      }, 2000, { immediate: true })
+      }, SAVE_DELAYS.SAVED_STATUS_DISPLAY, { immediate: true })
       
       return true
     } catch (e) {
@@ -199,17 +203,16 @@ export const useAutoSave = () => {
       if (!isRetry) {
         const { start: retryLater } = useTimeoutFn(
           () => performSave(content, true),
-          1000,
+          SAVE_DELAYS.RETRY_DELAY,
           { immediate: true }
         )
       }
       
-      // Keep error visible longer
       const { start: clearErrorStatus } = useTimeoutFn(() => {
         if (saveStatus.value === 'error') {
           saveStatus.value = 'idle'
         }
-      }, 5000, { immediate: true })
+      }, SAVE_DELAYS.ERROR_STATUS_DISPLAY, { immediate: true })
       
       return false
     }
@@ -242,7 +245,7 @@ export const useAutoSave = () => {
     if (markdownContent.value && hasUnsavedChanges.value) {
       await performSave(markdownContent.value)
     }
-  }, 1000) // Throttle to max once per second
+  }, SAVE_DELAYS.THROTTLE_SAVE)
   
   // Handle content changes with smart detection
   const handleContentChange = (newContent: string, oldContent: string) => {
@@ -304,7 +307,8 @@ export const useAutoSave = () => {
       // 2. Current editor is empty (most common case)
       // 3. Saved content is from within last 7 days (more generous)
       if (saved.content && saved.metadata) {
-        const isRecent = Date.now() - saved.metadata.timestamp < 7 * 24 * 60 * 60 * 1000 // 7 days
+        const recoveryWindowMs = THRESHOLDS.RECOVERY_WINDOW_DAYS * 24 * 60 * 60 * 1000
+        const isRecent = Date.now() - saved.metadata.timestamp < recoveryWindowMs
         const currentIsEmpty = !markdownContent.value || markdownContent.value.trim().length === 0
         
         // Show prompt if we have recent saved content and current editor is empty
@@ -382,12 +386,12 @@ export const useAutoSave = () => {
       }
     })
     
-    // Periodic save as fallback using VueUse (every 30 seconds if there are changes)
+    // Periodic save as fallback using VueUse
     const { pause: pausePeriodicSave, resume: resumePeriodicSave } = useIntervalFn(() => {
       if (hasUnsavedChanges.value && saveStatus.value === 'idle') {
         performSave(markdownContent.value)
       }
-    }, 30000)
+    }, SAVE_DELAYS.PERIODIC_SAVE)
     
     // Pause periodic saves when offline
     watch(() => network.isOnline.value, (online) => {
