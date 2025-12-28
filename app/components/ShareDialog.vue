@@ -230,7 +230,9 @@ watch(
         compressionTime.value = Math.round(performance.now() - startTime)
 
         // Detect compression method
-        compressionMethod.value = window.CompressionStream ? 'Native gzip' : 'Pako (fallback)'
+        compressionMethod.value = import.meta.client && 'CompressionStream' in window
+          ? 'Native gzip'
+          : 'Pako (fallback)'
 
         // Track the share
         trackShare(url)

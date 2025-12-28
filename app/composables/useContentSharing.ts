@@ -12,6 +12,7 @@ import {
 export function useContentSharing() {
   const route = useRoute()
   const router = useRouter()
+  const requestURL = useRequestURL()
   const { copy, isSupported: clipboardSupported } = useClipboard()
   
   // Check if current page is a shared document
@@ -33,7 +34,7 @@ export function useContentSharing() {
     }
     
     const compressed = await compressContent(JSON.stringify(document))
-    const baseURL = window.location.origin + window.location.pathname
+    const baseURL = `${requestURL.origin}${requestURL.pathname}`
     return `${baseURL}#share/${compressed}`
   }
   
@@ -100,6 +101,7 @@ export function useContentSharing() {
   
   // Track share events in localStorage
   const trackShare = (url: string) => {
+    if (!import.meta.client) return
     const shares = JSON.parse(localStorage.getItem('recentShares') || '[]')
     shares.unshift({
       url,
@@ -108,9 +110,10 @@ export function useContentSharing() {
     // Keep only last 10 shares
     localStorage.setItem('recentShares', JSON.stringify(shares.slice(0, 10)))
   }
-  
+
   // Get recent shares
   const getRecentShares = () => {
+    if (!import.meta.client) return []
     return JSON.parse(localStorage.getItem('recentShares') || '[]')
   }
   

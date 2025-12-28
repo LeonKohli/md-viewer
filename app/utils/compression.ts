@@ -165,8 +165,10 @@ export function estimateCompressedSize(content: string): number {
 }
 
 // Check if content can be shared via URL
+// Uses fixed base URL length estimate (typical origin ~40 chars + "/#share/" = ~50 chars)
+// This avoids window access and works in SSR
 export function canShareViaURL(content: string): boolean {
-  const baseURL = window.location.origin + '/#share/'
+  const BASE_URL_LENGTH_ESTIMATE = 50
   const estimatedSize = estimateCompressedSize(content)
-  return (baseURL.length + estimatedSize) < COMPRESSION_THRESHOLDS.MAX_URL_LENGTH
+  return (BASE_URL_LENGTH_ESTIMATE + estimatedSize) < COMPRESSION_THRESHOLDS.MAX_URL_LENGTH
 }
