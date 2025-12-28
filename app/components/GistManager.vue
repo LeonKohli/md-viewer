@@ -128,6 +128,7 @@
 // Gist is auto-imported from shared/types/
 import { useGists } from '~/composables/useGists'
 import { AlertCircle } from 'lucide-vue-next'
+import { useTimeAgo, useClipboard } from '@vueuse/core'
 import {
   Dialog,
   DialogContent,
@@ -155,6 +156,7 @@ const isOpen = computed({
 })
 
 const { gists, isLoading, error, hasMore, fetchGists, deleteGist, loadMore } = useGists()
+const { copy: copyToClipboard } = useClipboard()
 const toast = useToast()
 const searchQuery = ref('')
 
@@ -191,23 +193,7 @@ const getGistTitle = (gist: Gist): string => {
 
 // Format date for display
 const formatDate = (dateString: string): string => {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  
-  if (diffDays === 0) {
-    const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-    if (diffHours === 0) {
-      const diffMinutes = Math.floor(diffMs / (1000 * 60))
-      return `${diffMinutes}m ago`
-    }
-    return `${diffHours}h ago`
-  } else if (diffDays < 30) {
-    return `${diffDays}d ago`
-  } else {
-    return date.toLocaleDateString()
-  }
+  return useTimeAgo(new Date(dateString)).value
 }
 
 // Handle gist selection
@@ -225,8 +211,7 @@ const handleCreateNew = () => {
 // Handle copying gist link
 const handleCopyLink = async (gist: Gist) => {
   try {
-    await navigator.clipboard.writeText(gist.html_url)
-    // Silent success - user clicked it, it worked
+    await copyToClipboard(gist.html_url)
   } catch (err) {
     toast.error('Failed to copy link')
     console.error('Failed to copy link:', err)

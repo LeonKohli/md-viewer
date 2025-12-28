@@ -78,6 +78,7 @@
 <script setup lang="ts">
 // Explicit import required for defineProps (Vue SFC compiler limitation)
 import type { Gist } from '#shared/types/gist'
+import { useTimeAgo } from '@vueuse/core'
 
 type Props = {
   currentGist: Gist | null
@@ -146,32 +147,10 @@ const fileCount = computed(() => {
 
 const lastSavedText = computed(() => {
   if (!props.lastSaved) return ''
-  
-  const now = new Date()
-  const then = new Date(props.lastSaved)
-  const seconds = Math.floor((now.getTime() - then.getTime()) / 1000)
-  
-  if (seconds < 5) return 'just now'
-  if (seconds < 60) return `${seconds}s ago`
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  return then.toLocaleTimeString()
-})
-
-// Update the last saved text every 10 seconds
-let interval: NodeJS.Timeout | null = null
-
-onMounted(() => {
-  interval = setInterval(() => {
-    // This will trigger a re-computation of lastSavedText
-    // Vue's reactivity will handle the update
-  }, 10000)
+  return useTimeAgo(props.lastSaved).value
 })
 
 onUnmounted(() => {
-  if (interval) {
-    clearInterval(interval)
-  }
   if (savedAnimationTimeout) {
     clearTimeout(savedAnimationTimeout)
   }

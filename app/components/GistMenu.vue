@@ -307,6 +307,9 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
+import { useTimeAgo } from '@vueuse/core'
+
+const { copy: copyToClipboard } = useClipboard()
 
 // Props
 interface Props {
@@ -568,14 +571,12 @@ const handleCopyLink = async () => {
   if (!currentGist.value) return
   
   try {
-    await navigator.clipboard.writeText(currentGist.value.html_url)
+    await copyToClipboard(currentGist.value.html_url)
     linkCopied.value = true
-    // The UI checkmark is enough feedback
     setTimeout(() => {
       linkCopied.value = false
     }, 2000)
   } catch (error) {
-    // No checkmark = didn't work, that's enough feedback
     console.error('Failed to copy link:', error)
   }
 }
@@ -623,15 +624,7 @@ const getGistTitle = (gist: Pick<Gist, 'files'>): string => {
 }
 
 const formatTimeAgo = (date: string): string => {
-  const now = new Date()
-  const then = new Date(date)
-  const seconds = Math.floor((now.getTime() - then.getTime()) / 1000)
-  
-  if (seconds < 60) return 'just now'
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`
-  return then.toLocaleDateString()
+  return useTimeAgo(new Date(date)).value
 }
 
 // Fetch gists when logged in

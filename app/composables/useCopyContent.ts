@@ -8,6 +8,12 @@ type CopyOptions = {
   showToast?: boolean
 }
 
+const stripCodeCopyButtons = (html: string): string => {
+  return html
+    .replace(/<div class="code-block-wrapper">/g, '')
+    .replace(/<button[^>]*class="code-copy-btn"[^>]*>.*?<\/button>/g, '')
+}
+
 /**
  * Composable for copying content in multiple formats
  */
@@ -36,12 +42,7 @@ export const useCopyContent = () => {
           break
           
         case 'html':
-          // Get rendered HTML without copy buttons
-          let renderedHtml = $md(markdown)
-          // Remove copy button wrappers and buttons for cleaner HTML
-          content = renderedHtml
-            .replace(/<div class="code-block-wrapper">/g, '')
-            .replace(/<button[^>]*class="code-copy-btn"[^>]*>.*?<\/button>/g, '')
+          content = stripCodeCopyButtons($md(markdown))
           break
           
         default:
@@ -94,11 +95,7 @@ export const useCopyContent = () => {
         return $mdPlainText(markdown)
         
       case 'html':
-        const renderedHtml = $md(markdown)
-        // Remove copy button wrappers and buttons
-        return renderedHtml
-          .replace(/<div class="code-block-wrapper">/g, '')
-          .replace(/<button[^>]*class="code-copy-btn"[^>]*>.*?<\/button>/g, '')
+        return stripCodeCopyButtons($md(markdown))
         
       default:
         throw new Error(`Unknown format: ${format}`)

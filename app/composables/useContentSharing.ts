@@ -1,4 +1,5 @@
 import QRCode from 'qrcode'
+import { useClipboard } from '@vueuse/core'
 import {
   compressContent,
   decompressContent,
@@ -11,6 +12,7 @@ import {
 export function useContentSharing() {
   const route = useRoute()
   const router = useRouter()
+  const { copy, isSupported: clipboardSupported } = useClipboard()
   
   // Check if current page is a shared document
   const isSharedDocument = computed(() => {
@@ -69,28 +71,13 @@ export function useContentSharing() {
     }
   }
   
-  // Copy URL to clipboard with fallback
+  // Copy URL to clipboard using VueUse
   const copyToClipboard = async (text: string): Promise<boolean> => {
     try {
-      await navigator.clipboard.writeText(text)
+      await copy(text)
       return true
     } catch (err) {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea')
-      textArea.value = text
-      textArea.style.position = 'fixed'
-      textArea.style.opacity = '0'
-      document.body.appendChild(textArea)
-      textArea.select()
-      
-      try {
-        document.execCommand('copy')
-        document.body.removeChild(textArea)
-        return true
-      } catch (error) {
-        document.body.removeChild(textArea)
-        return false
-      }
+      return false
     }
   }
   
