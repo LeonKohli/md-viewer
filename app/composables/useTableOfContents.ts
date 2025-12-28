@@ -4,12 +4,14 @@ import type { Ref } from 'vue'
 
 export function useTableOfContents(content: Ref<string>, renderedHtml?: Ref<string>) {
   const activeHeadingId = ref<string>('')
-  
+  // Write directly to global state
+  const globalHeadings = useTocHeadings()
+
   // Allow external setting of active heading
   const setActiveHeading = (id: string) => {
     activeHeadingId.value = id
   }
-  
+
   // Extract headings from rendered HTML for accurate IDs
   const headings = computed(() => {
     const items: TocItem[] = []
@@ -51,7 +53,12 @@ export function useTableOfContents(content: Ref<string>, renderedHtml?: Ref<stri
     
     return buildHierarchy(items)
   })
-  
+
+  // Sync to global state for layout/navbar access
+  watch(headings, (newHeadings) => {
+    globalHeadings.value = newHeadings
+  }, { deep: true, immediate: true })
+
   // Build hierarchical structure
   function buildHierarchy(items: TocItem[]): TocItem[] {
     const root: TocItem[] = []

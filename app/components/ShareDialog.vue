@@ -211,42 +211,47 @@ const canUseWebShare = computed(() => {
 })
 
 // Generate share URL when dialog opens or content changes
-watchEffect(async () => {
-  if (isOpen.value && props.content && canShare.value) {
-    compressionError.value = ''
-    shareUrl.value = ''
-    const startTime = performance.now()
-    
-    try {
-      const url = await generateShareURL(props.content, { 
-        title: props.title,
-        readOnly: true
-      })
-      
-      shareUrl.value = url
-      compressionTime.value = Math.round(performance.now() - startTime)
-      
-      // Detect compression method
-      compressionMethod.value = window.CompressionStream ? 'Native gzip' : 'Pako (fallback)'
-      
-      // Track the share
-      trackShare(url)
-      
-      // Reset UI states
-      showQR.value = false
-      qrCodeUrl.value = ''
-      copied.value = false
-      showTechnicalInfo.value = false
-    } catch (error) {
-      console.error('Failed to generate share URL:', error)
-      compressionError.value = error instanceof Error ? error.message : 'Failed to compress document'
-      toast.error('Failed to generate share URL')
+// Using watch instead of watchEffect for proper async handling
+watch(
+  [isOpen, () => props.content, canShare],
+  async ([open, content, canShareVal]) => {
+    if (open && content && canShareVal) {
+      compressionError.value = ''
+      shareUrl.value = ''
+      const startTime = performance.now()
+
+      try {
+        const url = await generateShareURL(content, {
+          title: props.title,
+          readOnly: true
+        })
+
+        shareUrl.value = url
+        compressionTime.value = Math.round(performance.now() - startTime)
+
+        // Detect compression method
+        compressionMethod.value = window.CompressionStream ? 'Native gzip' : 'Pako (fallback)'
+
+        // Track the share
+        trackShare(url)
+
+        // Reset UI states
+        showQR.value = false
+        qrCodeUrl.value = ''
+        copied.value = false
+        showTechnicalInfo.value = false
+      } catch (error) {
+        console.error('Failed to generate share URL:', error)
+        compressionError.value = error instanceof Error ? error.message : 'Failed to compress document'
+        toast.error('Failed to generate share URL')
+      }
+    } else if (open && !canShareVal) {
+      // Document is too large
+      shareUrl.value = ''
     }
-  } else if (isOpen.value && !canShare.value) {
-    // Document is too large
-    shareUrl.value = ''
-  }
-})
+  },
+  { immediate: true }
+)
 
 // Copy link to clipboard
 const copyLink = async () => {
