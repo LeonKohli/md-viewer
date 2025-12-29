@@ -15,9 +15,9 @@ export function useTableOfContents(content: Ref<string>, renderedHtml?: Ref<stri
   // Extract headings from rendered HTML for accurate IDs
   const headings = computed(() => {
     const items: TocItem[] = []
-    
-    // If we have rendered HTML, extract from that for accurate IDs
-    if (renderedHtml?.value) {
+
+    // If we have rendered HTML and DOMParser is available (client-side), use it
+    if (import.meta.client && renderedHtml?.value) {
       const parser = new DOMParser()
       const doc = parser.parseFromString(renderedHtml.value, 'text/html')
       const headingElements = doc.querySelectorAll('h1[id], h2[id], h3[id], h4[id], h5[id], h6[id]')
