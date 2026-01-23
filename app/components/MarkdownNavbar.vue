@@ -51,8 +51,9 @@
             <!-- View -->
             <DropdownMenuItem @click="toggleToc">
               <Icon name="lucide:list" class="w-4 h-4 mr-2" />
-              {{ showToc ? 'Hide' : 'Show' }} Table of Contents
-              <DropdownMenuShortcut>{{ isMac ? '⌘/' : 'Ctrl+/' }}</DropdownMenuShortcut>
+              Table of Contents
+              <Icon v-if="showToc" name="lucide:check" class="w-4 h-4 ml-auto" />
+              <DropdownMenuShortcut v-else>{{ isMac ? '⌘/' : 'Ctrl+/' }}</DropdownMenuShortcut>
             </DropdownMenuItem>
             <DropdownMenuItem @click="resetPanels">
               <Icon name="lucide:columns-2" class="w-4 h-4 mr-2" />

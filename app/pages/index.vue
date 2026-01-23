@@ -524,20 +524,17 @@ const handleFileDrop = (content: string, filename: string) => {
   // Clear any previous error
   fileDropError.value = null
 
-  // Prompt for confirmation if there's existing content
-  if (markdownInput.value.trim()) {
-    // Use the content - for now, replace directly
-    // A more sophisticated implementation could show a dialog
-    markdownInput.value = content
-  } else {
-    markdownInput.value = content
-  }
+  // Set the imported content
+  markdownInput.value = content
 
   // Update the filename for display
   currentGistFilename.value = filename
 
   // Clear any existing gist connection since we're importing a local file
   clearCurrentGist()
+
+  // Clear saved content to prevent stale recovery prompts
+  clearSavedContent()
 
   // Show success feedback
   toast.success(`Imported ${filename}`)
@@ -758,6 +755,14 @@ watch(openImportEvent, (timestamp) => {
   }
 })
 
+// Watch for clear recovery events (e.g., when loading examples)
+const clearRecoveryEvent = useClearRecoveryEvent()
+watch(clearRecoveryEvent, (timestamp) => {
+  if (timestamp > 0) {
+    clearSavedContent()
+  }
+})
+
 // Set up scroll sync elements - only on desktop
 watchEffect(() => {
   if (!isDesktop.value) return
@@ -954,17 +959,20 @@ const loadGist = async (gist: Gist & { tempContent?: string; tempFilename?: stri
       // Direct load without fetching from API
       markdownInput.value = gist.tempContent
       currentGistFilename.value = gist.tempFilename
-      
+
       // Update sync point for the new file to avoid false "unsaved changes" warnings
       setSyncPoint(gist.tempContent, gist.tempFilename)
-      
+
+      // Clear saved content to prevent stale recovery prompts
+      clearSavedContent()
+
       // Clear any shared document state
       isViewingSharedDocument.value = false
       sharedDocumentTitle.value = ''
-      
+
       // Switch to editor tab
       activeTab.value = 'editor'
-      
+
       return
     }
     
@@ -994,37 +1002,39 @@ const loadGist = async (gist: Gist & { tempContent?: string; tempFilename?: stri
 
 const loadGistFile = async (filename: string) => {
   if (!gistToLoad.value) return
-  
+
   try {
     // Get the file content
     const file = gistToLoad.value.files[filename] as GistFile
     if (!file) return
-    
+
     // Load the content into the editor
     const content = file?.content || ''
     markdownInput.value = content
     currentGistFilename.value = filename
-    
+
     // Set the sync point to track changes from this baseline
     setSyncPoint(content, filename)
-    
+
+    // Clear saved content to prevent stale recovery prompts
+    clearSavedContent()
+
     // Update document title
     if (gistToLoad.value.description) {
       documentTitle.value = gistToLoad.value.description
     }
-    
+
     // Clear any shared document state
     isViewingSharedDocument.value = false
     sharedDocumentTitle.value = ''
-    
+
     // Switch to editor tab
     activeTab.value = 'editor'
-    
+
     // Reset the gist to load
     showFileSelector.value = false
   } catch (error) {
     toast.error('Failed to load gist file')
-    // Log error for debugging
   }
 }
 

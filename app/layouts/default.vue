@@ -99,10 +99,14 @@ const handleClearContent = () => {
   hasUnsavedChanges.value = false
 }
 
+const clearRecoveryEvent = useClearRecoveryEvent()
+
 const handleLoadSample = () => {
   // Content already set via v-model from navbar emit
   currentGistFilename.value = ''
   hasUnsavedChanges.value = false
+  // Trigger clear of saved content to prevent stale recovery prompts
+  clearRecoveryEvent.value = Date.now()
 }
 
 // Add keyboard shortcuts

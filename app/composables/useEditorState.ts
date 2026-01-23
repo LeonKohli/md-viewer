@@ -36,6 +36,9 @@ export const useResetPanelsEvent = () => useState<number>('resetPanelsEvent', ()
 // File import event (timestamp triggers file picker in index.vue)
 export const useOpenImportEvent = () => useState<number>('openImportEvent', () => 0)
 
+// Clear recovery event (timestamp triggers clearSavedContent in index.vue)
+export const useClearRecoveryEvent = () => useState<number>('clearRecoveryEvent', () => 0)
+
 // Rendered content (synced from useMarkdownEditor)
 export const useRenderedHtml = () => useState<string>('renderedHtml', () => '')
 export const useTocHeadings = () => useState<TocItem[]>('tocHeadings', () => [])
