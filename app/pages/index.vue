@@ -183,33 +183,41 @@
               </div>
             </Transition>
             <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <Button 
-                  variant="ghost"
-                  size="sm" 
-                  @click="toggleSync"
-                  :class="{ 'bg-accent text-accent-foreground': syncEnabled }"
-                  class="h-7 px-2 text-xs hidden md:flex"
-                >
-                  <Icon :name="scrollSyncIcon" class="h-3 w-3 mr-1" />
-                  <span>Sync</span>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>{{ scrollSyncTooltip }}</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-            <Button 
-              variant="ghost"
-              size="sm" 
-              @click="toggleWordWrap"
-              :class="{ 'bg-accent text-accent-foreground': wordWrap }"
-              class="h-7 px-2 text-xs"
-            >
-              Wrap
-            </Button>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    @click="toggleSync"
+                    :class="{ 'bg-accent text-accent-foreground': syncEnabled }"
+                    class="h-7 w-7 hidden md:flex"
+                  >
+                    <Icon :name="scrollSyncIcon" class="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{{ scrollSyncTooltip }}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    @click="toggleWordWrap"
+                    :class="{ 'bg-accent text-accent-foreground': wordWrap }"
+                    class="h-7 w-7"
+                  >
+                    <Icon :name="wordWrap ? 'lucide:wrap-text' : 'lucide:move-horizontal'" class="h-3.5 w-3.5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{{ wordWrap ? 'Disable word wrap' : 'Enable word wrap' }}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             <!-- Mobile preview toggle button removed - using tabs instead -->
           </div>
         </div>
@@ -410,11 +418,9 @@
     </div>
 
     <!-- Status Bar -->
-    <StatusBar 
+    <StatusBar
       :stats="stats"
       :cursor-position="cursorPosition"
-      :sync-enabled="syncEnabled"
-      :scroll-sync-icon="scrollSyncIcon"
       :has-content="!!markdownInput"
     />
   </div>

@@ -3,27 +3,23 @@
     <!-- Desktop Dropdown -->
     <DropdownMenu v-if="!isMobile">
       <DropdownMenuTrigger as-child>
-        <Button 
-          variant="ghost" 
-          size="sm"
-          class="h-9 md:h-10 touch-target relative"
+        <Button
+          variant="ghost"
+          size="icon"
+          class="h-9 w-9 relative"
           :title="menuTitle"
           aria-label="Gist menu"
         >
-          <div class="relative">
-            <Icon 
-              :name="menuIcon" 
-              class="w-4 h-4"
-              :class="iconClass"
-            />
-            <!-- Status indicator dot -->
-            <div 
-              v-if="hasChangesToSave && currentGist"
-              class="absolute -top-1 -right-1 w-2 h-2 bg-orange-500 rounded-full"
-              title="Unsaved changes to GitHub"
-            />
-          </div>
-          <span class="hidden lg:inline ml-1.5">{{ menuLabel }}</span>
+          <Icon
+            :name="menuIcon"
+            class="w-4 h-4"
+            :class="iconClass"
+          />
+          <!-- Unsaved dot - only indicator needed -->
+          <span
+            v-if="hasChangesToSave && currentGist"
+            class="absolute top-1.5 right-1.5 w-2 h-2 bg-orange-500 rounded-full"
+          />
         </Button>
       </DropdownMenuTrigger>
       

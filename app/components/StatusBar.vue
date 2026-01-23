@@ -7,19 +7,6 @@
         <span class="hidden lg:inline">Live Preview</span>
         <span class="lg:hidden">Live</span>
       </span>
-      <span class="hidden sm:inline">•</span>
-      <span class="hidden md:flex items-center gap-1">
-        <Icon 
-          :name="scrollSyncIcon" 
-          class="h-3 w-3"
-          :class="{
-            'text-green-500 dark:text-green-400': syncEnabled,
-            'text-muted-foreground': !syncEnabled
-          }"
-        />
-        <span class="hidden xl:inline">Scroll {{ syncEnabled ? 'sync on' : 'sync off' }}</span>
-        <span class="xl:hidden">{{ syncEnabled ? 'Sync' : 'No sync' }}</span>
-      </span>
       <span v-if="stats.words > 0" class="hidden sm:inline">•</span>
       <span v-if="stats.words > 0" class="flex items-center gap-1">
         <span class="hidden sm:inline">{{ stats.words }}</span>
@@ -66,8 +53,6 @@ import type { MarkdownStats, CursorPosition } from '#shared/types/editor'
 type Props = {
   stats: MarkdownStats
   cursorPosition: CursorPosition
-  syncEnabled: boolean
-  scrollSyncIcon: string
   hasContent: boolean
 }
 
