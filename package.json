@@ -46,7 +46,7 @@
     "markdown-it-table-of-contents": "^1.1.0",
     "markdown-it-task-lists": "^2.1.1",
     "mermaid": "^11.12.2",
-    "nuxt": "^4.2.2",
+    "nuxt": "^4.3.0",
     "nuxt-auth-utils": "^0.5.26",
     "nuxt-security": "2.5.0",
     "octokit": "^5.0.5",

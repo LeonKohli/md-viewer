@@ -23,6 +23,7 @@
       @save-gist="handleSaveGist"
       @new-gist="handleNewGist"
       @load-gist="handleLoadGist"
+      @open-import="handleOpenImport"
       class="flex-shrink-0"
     />
 
@@ -46,6 +47,7 @@ const showGistManager = useShowGistManager()
 const showSaveGistDialog = useShowSaveGistDialog()
 const currentGistFilename = useCurrentGistFilename()
 const hasUnsavedChanges = useHasUnsavedChanges()
+const openImportEvent = useOpenImportEvent()
 
 const handleResetPanels = () => {
   resetPanelsEvent.value = Date.now()
@@ -57,6 +59,10 @@ const handleToggleToc = () => {
 
 const handleOpenShare = () => {
   showShareDialog.value = true
+}
+
+const handleOpenImport = () => {
+  openImportEvent.value = Date.now()
 }
 
 const handleOpenGists = () => {
@@ -106,17 +112,23 @@ const handleKeydown = (e: KeyboardEvent) => {
     e.preventDefault()
     handleToggleToc()
   }
-  
+
   // Share shortcut (Ctrl/Cmd + Shift + S)
   if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
     e.preventDefault()
     handleOpenShare()
   }
-  
+
   // Save gist shortcut (Ctrl/Cmd + G)
   if ((e.ctrlKey || e.metaKey) && e.key === 'g') {
     e.preventDefault()
     handleSaveGist()
+  }
+
+  // Open/Import file shortcut (Ctrl/Cmd + O)
+  if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+    e.preventDefault()
+    handleOpenImport()
   }
 }
 

@@ -99,13 +99,19 @@
     </div>
     
     <!-- Main Content -->
-    <div 
+    <div
+      ref="mainContentRef"
       class="flex-1 overflow-hidden relative"
       :class="[
         'flex',
         splitMode === 'horizontal' ? 'flex-row' : 'flex-col'
       ]"
     >
+      <!-- File Drop Overlay -->
+      <FileDropOverlay
+        :is-visible="isOverDropZone"
+        :is-error="!!fileDropError"
+      />
       <!-- Editor Panel -->
       <div 
         class="flex flex-col overflow-hidden"
@@ -501,6 +507,56 @@ const route = useRoute()
 // Preview container ref
 const previewContainerRef = ref<HTMLElement>()
 
+// Main content ref for file drop zone
+const mainContentRef = ref<HTMLElement>()
+
+// File drop handling
+const fileDropError = ref<string | null>(null)
+let fileDropErrorTimeout: NodeJS.Timeout | null = null
+
+const handleFileDrop = (content: string, filename: string) => {
+  // Clear any previous error
+  fileDropError.value = null
+
+  // Prompt for confirmation if there's existing content
+  if (markdownInput.value.trim()) {
+    // Use the content - for now, replace directly
+    // A more sophisticated implementation could show a dialog
+    markdownInput.value = content
+  } else {
+    markdownInput.value = content
+  }
+
+  // Update the filename for display
+  currentGistFilename.value = filename
+
+  // Clear any existing gist connection since we're importing a local file
+  clearCurrentGist()
+
+  // Show success feedback
+  toast.success(`Imported ${filename}`)
+}
+
+const handleFileDropError = (error: string) => {
+  fileDropError.value = error
+
+  // Clear error after a delay
+  if (fileDropErrorTimeout) clearTimeout(fileDropErrorTimeout)
+  fileDropErrorTimeout = setTimeout(() => {
+    fileDropError.value = null
+  }, 3000)
+
+  toast.error(error)
+}
+
+const {
+  isOverDropZone,
+  openFilePicker
+} = useFileDrop(mainContentRef, {
+  onSuccess: handleFileDrop,
+  onError: handleFileDropError
+})
+
 // Table of Contents
 const { 
   headings: tocHeadings, 
@@ -616,6 +672,12 @@ onUnmounted(() => {
     clearUndoTimeout = null
   }
 
+  // Clear file drop error timeout
+  if (fileDropErrorTimeout) {
+    clearTimeout(fileDropErrorTimeout)
+    fileDropErrorTimeout = null
+  }
+
   // Remove scroll listener if it exists
   if (previewContainerRef.value && scrollListener) {
     previewContainerRef.value.removeEventListener('scroll', scrollListener)
@@ -629,6 +691,7 @@ onUnmounted(() => {
 
 // Shared state via composables (Nuxt 4 pattern)
 const resetPanelsEvent = useResetPanelsEvent()
+const openImportEvent = useOpenImportEvent()
 const showToc = useShowToc()
 const showShareDialog = useShowShareDialog()
 const showGistManager = useShowGistManager()
@@ -679,6 +742,13 @@ watch(resetPanelsEvent, (timestamp) => {
   if (timestamp > 0) {
     resetToCenter()
     isFocusMode.value = false
+  }
+})
+
+// Watch for import file events from navbar
+watch(openImportEvent, (timestamp) => {
+  if (timestamp > 0) {
+    openFilePicker()
   }
 })
 

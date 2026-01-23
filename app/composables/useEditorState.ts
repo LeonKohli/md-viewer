@@ -33,6 +33,9 @@ export const useGistsHasMore = () => useState<boolean>('gistsHasMore', () => tru
 // Panel and layout state
 export const useResetPanelsEvent = () => useState<number>('resetPanelsEvent', () => 0)
 
+// File import event (timestamp triggers file picker in index.vue)
+export const useOpenImportEvent = () => useState<number>('openImportEvent', () => 0)
+
 // Rendered content (synced from useMarkdownEditor)
 export const useRenderedHtml = () => useState<string>('renderedHtml', () => '')
 export const useTocHeadings = () => useState<TocItem[]>('tocHeadings', () => [])

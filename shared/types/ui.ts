@@ -37,6 +37,7 @@ export type MarkdownNavbarEmits = {
   (e: 'resetPanels'): void
   (e: 'toggleToc'): void
   (e: 'openShare'): void
+  (e: 'openImport'): void
   (e: 'openGists'): void
   (e: 'saveGist'): void
   (e: 'newGist'): void

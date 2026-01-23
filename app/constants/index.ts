@@ -12,6 +12,13 @@ export const EXPORT_CONFIG = {
   TEXT_MIME_TYPE: 'text/plain'
 } as const
 
+// File import settings
+export const FILE_IMPORT_CONFIG = {
+  MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
+  ACCEPTED_EXTENSIONS: ['.md', '.txt', '.markdown', '.mdown', '.mkd'],
+  ACCEPTED_MIME_TYPES: ['text/markdown', 'text/plain', 'text/x-markdown', 'text/*']
+} as const
+
 // Editor timing constants
 export const EDITOR_TIMING = {
   UNDO_DISPLAY_MS: 10000,     // How long "Undo" button shows after clear
